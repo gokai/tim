@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<lang>
+    <commands>
+        <create>create</create>
+        <delete>delete</delete>
+        <edit>edit</edit>
+        <addImages>addImages</addImages>
+        <addDir>addDir</addDir>
+        <addTags>at</addTags>
+        <removeTags>rt</removeTags>
+        <list>list</list>
+        <browse>browse</browse>
+        <search>search</search>
+        <slide>slide</slide>
+        <rslide>rslide</rslide>
+        <gallery>gallery</gallery>
+        <colls>colls</colls>
+        <setup>setup</setup>
+        <tags>tags</tags>
+        <dir>dir</dir>
+        <update>update</update>
+        <help>help</help>
+        <master>master</master>
+        <export>export</export>
+        <import>import</import>
+    </commands>
+    <yes>y</yes>
+    <no>n</no>
+    <create>Give at least one tag for the collection
+if you want more use , to seperate them</create>
+    <name>Name</name>
+    <tags>Tags</tags>
+    <path>Path</path>
+    <id>id</id>
+    <page>Page</page>
+    <files>Files</files>
+    <add-dir>Do you want to give shared tags to the images(y/n)?</add-dir>
+    <give-tags>Give tags(use , to separate):</give-tags>
+    <files-found>Files found</files-found>
+    <help>
+        <known>Known commands:</known>
+        <commands>
+            <create>nameOfCollection</create>
+            <delete>nameOfCollection</delete>
+            <edit>nameOfCollection</edit>
+            <addImages>addImages nameOfCollection images</addImages>
+            <addDir>nameofcollection directory</addDir>
+            <addTags>id tags  add tags for the item</addTags>
+            <removeTags>id tags  remove tags from the item</removeTags>
+            <colls> </colls>
+            <list> </list>
+            <browse>nameOfCollection</browse>
+            <search>tag</search>
+            <gallery>nameOfCollection</gallery>
+            <slide>nameOfCollection</slide>
+            <tags> </tags>
+            <dir>directory</dir>
+            <export>nameOfCollection</export>
+            <import>filename</import>
+            <setup> </setup>
+            <help> </help>
+            <rslide>nameOfCollection</rslide>
+            <master> </master>
+            <update> </update>
+            <n>       next page</n>
+            <p>       previous page</p>
+            <q>       quit</q>
+            <s>    select the image(s)</s>
+            <ls>      List the selected images</ls>
+            <cls>     Clear selection</cls>
+            <at> id   add tags to image(s)</at>
+            <rt> id   remove tags from image(s)</rt>
+            <rm> id   remove the image(s) from collection</rm>
+            <o>    open the image in an external application</o>
+            <rf>   Remove filters</rf>
+            <info> id   show all stored info about the image(s)</info>
+            <jump> x  jump to page x.</jump>
+            <ro> *    reorder the viewed list. * can be tags, asc or desc</ro>
+            <filter> t Removes images with the tag t from the list</filter>
+            <find> t  Removes images without the tag t from the list</find>
+            <help>    display this text</help>
+        </commands>
+        <!--The commands that can affect multiple images accept the word all to mean-->
+        <!--all images on the page or s to affect the selected images.</help-browse>-->
+        <help-coll>
+            n           next page
+            p           previous page
+            q           quit
+            s id        Select the collection(s)
+            ls          List currently selected collections
+            cls         Clear selection
+            g id        show thumbnails of the images in a collection
+            slide id    start a slideshow of a collection
+            at id       add tags to collection(s)
+            rt id       remove tags from collection(s)
+            r id        rename the collection(s)
+            info id     show all stored info about the image(s)
+            jump x      jump to page x. First page is 0
+            ro *        reorder the viewed list. * can be tags, asc or desc
+            help        display this text
+        The commands that can affect multiple images accept the word all to mean
+        all images on the page. id on any commad can be raplaced by s to use
+        selected collections.</help-coll>
+    </help>
+    <editing>Editing collection </editing>
+    <new-name>New name:</new-name>
+    <edit-guide>What do you wish to do?
+    at add tags for the collection
+    rt remove tags from the collection
+    r rename the collection
+    ef edit files in the collection
+    q stop editing</edit-guide>
+    <edit-list>Affected items:</edit-list>
+    <edit-rt-current>Current tags for </edit-rt-current>
+    <edit-rt-q>Which tags do you wish to remove?(use , to separate)</edit-rt-q>
+    <edit-rm>Are you sure you want to remove the listed files? </edit-rm>
+    <add-tags>Tags for %s (use , to separate)</add-tags>
+    <add-q>Do you want to give tags to the images now?(y/n)</add-q>
+    <edit-check-thumb>Do you wish to view the file thumbnails before editing(y/n)?</edit-check-thumb>
+    <edit-check-correct>Were the images correct(y/n)?(you can remove files but not add)</edit-check-correct>
+    <edit-check-remove>Which file(s) you want to remove(use , and id given)</edit-check-remove>
+    <collections>collections</collections>
+    <error-missing>Missing Parameter</error-missing>
+    <fc>File count</fc>
+    <collection>Collection</collection>
+    <buffering>buffering image: </buffering>
+    <continue>Press return to continue</continue>
+    <setup-assistant>Which setting do you need help with?(only maxlen is available)</setup-assistant>
+    <setup-maxlen>Write something until one terminal row is full
+        you might need to press return twise before you get an answer</setup-maxlen>
+    <setup-value>A good value is:</setup-value>
+    <setup-current>Current settings are:</setup-current>
+    <setup-askhelp>Do you need help with the settings(y/n)</setup-askhelp>
+    <setup-set>Give a setting and a value seperated with space(e.g. lang en). To set multilevel settings use the format upper:lower value e.g. window:width 1024. q quits the application.</setup-set>
+    <collection-not-found> collection does not excist</collection-not-found>
+    <is-dir>%s is a directory. Do you wish to add its contents?(y/n)</is-dir>
+    <not-dir>%s is not a directory</not-dir>
+    <not-exist>File or directory %s cannot be found</not-exist>
+    <not-number>{0} is not a number</not-number>
+    <no-tag>%s has no tag %s</no-tag>
+    <wrong-search>%s is not an accepted search type. Use inc or exc insetad.</wrong-search>
+    <no-selection>Nothing has been selected</no-selection>
+    <add-selected>Do you want to add the selected files to a collection?</add-selected>
+    <which-collection>Which collection?</which-collection>
+    <exists>Collection %s already exists</exists>
+</lang>

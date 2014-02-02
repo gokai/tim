@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<lang>
+  <commands>
+      <create>luo</create>
+      <delete>poista</delete>
+      <edit>muokkaa</edit>
+      <addImages>lis&#xE4;&#xE4;Kuvia</addImages>
+      <addDir>lis&#xE4;&#xE4;Kansio</addDir>
+      <addTags>at</addTags>
+      <removeTags>rt</removeTags>
+      <list>listaa</list>
+      <browse>selaa</browse>
+      <search>etsi</search>
+      <slide>esitys</slide>
+      <rslide>sesitys</rslide>
+      <gallery>galleria</gallery>
+      <colls>kokoelmat</colls>
+      <setup>setup</setup>
+      <tags>tagit</tags>
+      <dir>kansio</dir>
+      <update>p&#xE4;ivit&#xE4;</update>
+      <help>apua</help>
+      <master>master</master>
+      <export>vie</export>
+      <import>tuo</import>
+  </commands>
+  <yes>k</yes>
+  <no>e</no>
+  <create>Anna v&#xE4;hint&#xE4;&#xE4;n yksi tagi kokoelmalle
+Jos haluat useampia k&#xE4;yt&#xE4; , erottaaksesi ne</create>
+  <name>Nimi</name>
+  <tags>Tagit</tags>
+  <path>Polku</path>
+  <id>id</id>
+  <page>Sivu</page>
+  <files>Tiedostoa</files>
+  <add-dir>Haluatko antaa kuville yhteisi&#xE4; tageja(k/e)?</add-dir>
+  <give-tags>Anna tagit(k&#xE4;yt&#xE4; , erottimena):</give-tags>
+  <files-found>Tiedostoja l&#xF6;ytynyt</files-found>
+  <help>
+      <known>Tunnetut komennot ovat:</known>
+      <commands>
+        <create>kokoelmanNimi  Luo uusi kokoelma.</create>
+        <delete>kokoelmanNimi  Poista kokoelma. Ei poista kuvia</delete>
+        <edit>kokoelmanNimi  muokkaa kokoelmaa</edit>
+        <addImages>kokoelmanNimi kuvat  Lisää listatut kuvat kokoelmaan</addImages>
+        <addDir>kokoelmanNimi kansio  Lisää kansion tiedostot kokoelmaan</addDir> 
+        <addTags>id tagit  lisää tageja. Erottele tagit pilkulla(,)</addTags>
+        <removeTags>id tagit   Poista tagit. Erottele tagit pilkulla(,)</removeTags>
+        <colls>   Selaa ja muokkaa kokoelmia</colls>
+        <list>  Tulostaa listauksen kokoelmista ja niiden tageista</list>
+        <browse>kokoelmanNimi   Selaa ja muokkaa kokoelman tiedostoja</browse>
+        <search>tagi   Etsi tiedostoja tagien perusteella</search>
+        <gallery>kokoelmanNimi   Näyttää pikkukuvagallerian</gallery>
+        <slide>kokoelmanNimi  Näyttää nimen mukaan järjestetyn kuvaesityksen</slide>
+        <tags>  Selaa kaikkia nykyisessä pääkokoelmassa käytettyjä tageja</tags>
+        <dir>polku   Näytä kansion kuvat galleriassa</dir>
+        <export>kokoelmanNimi   Luo kokoelmasta lisättävän tiedoston</export>
+        <import>tiedostonimi    Lisää kokoelmatiedoston pääkokoelmaan</import>
+        <setup>     Muokkaa ohjelman asetuksia</setup>
+        <help>      Näyttää tämän aputekstin</help>
+        <rslide>kokoelmanNimi   Näyttää satunnaisen kuvaesityksen</rslide>
+        <master>nimi    Luo uuden pääkokoelman</master>
+        <update>    Tämä komento ei valitettavasti toimi</update>
+        <n>seuraava sivu</n>
+        <p>edellinen sivu</p>
+        <q>lopeta selaaminen</q>
+        <v>id    n&#xE4;yt&#xE4; kuva</v>
+        <s>id    Valitse kuva(t)</s>
+        <ls>Listaa valitut kuvat</ls>
+        <cls>Tyhjenn&#xE4; valinta</cls>
+        <g>n&#xE4;yt&#xE4; pikkukuvat alkaen t&#xE4;lt&#xE4; sivulta</g>
+        <slideb>n&#xE4;yt&#xE4; diaesitys kuvista sivun alusta alkaen</slideb>
+        <at>id   lis&#xE4;&#xE4; tageja kuvalle tai kuville</at>
+        <rt>id   poista tageja kuvalta tai kuvilta(kuva kerrallaan)</rt>
+        <rm>id   poista kuva(tai kuvia) kokoelmasta</rm>
+        <o>id    avaa kuva ulkoisessa ohjelmassa</o>
+        <find>tagit     näyttää vain ne rivit, joilla on kaikki annetut tagit</find>
+        <filter>tagit   poistaa listauksesta ne rivit, joilla on annetut tagit</filter>
+        <rf>    Poista suodatus käytöstä</rf>
+        <info>id kertoo kaikki tiedot kuvasta tai kuvista</info>
+        <jump>x  siirtyy sivulle x ensimm&#xE4;inene sivu on 0</jump>
+        <ro>*    uudelleenj&#xE4;rjest&#xE4;&#xE4; listan. * voi olla tags, asc tai desc</ro>
+      </commands>
+  </help>
+  <editing>Muokataan kokoelmaa </editing>
+  <new-name>Uusi nimi:</new-name>
+  <edit-guide>Mit&#xE4; haluat tehd&#xE4;?
+    at lis&#xE4;&#xE4; tageja kokoelmalle
+    rt poista tageja kokoelmalta
+    r uudelleennime&#xE4; kokoelma
+    ef muokkaa kokoelman tiedostoja
+    q lopeta muokkaaminen</edit-guide>
+  <edit-list>Muokattavat:</edit-list>
+  <edit-rt-current>Nykyiset tagit kuvalle </edit-rt-current>
+  <edit-rt-q>Mitk&#xE4; tagit haluat poistaa?(k&#xE4;yt&#xE4; , erottimena)</edit-rt-q>
+  <edit-rm>Haluatko varmasti poistaa listatut kuvat kokoelmasta?(k/e)</edit-rm>
+  <add-tags>Tagit kuvalle %s (k&#xE4;yt&#xE4; , erottimena)</add-tags>
+  <add-q>Haluatko antaa kuville tageja nyt?(k/e)</add-q>
+  <edit-check-thumb>Haluatko katsoa muokattavien kuvien pikkukuvat enne muokkausta(k/e)?</edit-check-thumb>
+  <edit-check-correct>Olivatko tiedostot oikeat(k/e)?(voit poistaa kuvia listasta mutta et lis&#xE4;t&#xE4;)</edit-check-correct>
+  <edit-check-remove>Mitk&#xE4; tiedostot haluat poistaa listasta?(k&#xE4;yt&#xE4; , ja annettua tunnusta)</edit-check-remove>
+  <collections>kokoelmat</collections>
+  <error-missing>Puuttuva Parametri</error-missing>
+  <fc>Tiedostoja</fc>
+  <collection>Kokoelma</collection>
+  <buffering>ladataan kuvaa: </buffering>
+  <continue>Paina enter jatkaaksesi</continue>
+  <setup-assistant>Mink&#xE4; asetuksen kanssa tarvitset apua(vain maxlen saatavilla)</setup-assistant>
+  <setup-maxlen>Kirjoita jotain kunnes yksi terminaalin rivi on t&#xE4;ysi
+    saatat joutua painamaan enteri&#xE4; kahdesti arvon saamiseksi</setup-maxlen>
+  <setup-value>Hyv&#xE4; arvo voisi olla:</setup-value>
+  <setup-current>Nykyiset asetukset ovat:</setup-current>
+  <setup-askhelp>Tarvitsetko apua asetusten kanssa</setup-askhelp>
+  <setup-set>Anna asetus ja arvo v&#xE4;lily&#xF6;nnill&#xE4; erotettuna(esim. lang fi). Monitasoiset asetukset tulee antaa muodossa yla:ala arvo esim. window:width 1024. q poistuu sovelluksesta</setup-set>
+  <collection-not-found>kokoelmaa ei ole</collection-not-found>
+  <is-dir>%s on kansio haluatko lis&#xE4;t&#xE4; sen sis&#xE4;ll&#xF6;n?(k/e)</is-dir>
+  <not-dir>%s ei ole kansio</not-dir>
+  <not-exist>Kansiota tai tiedostoa %s ei l&#xF6;ydy</not-exist>
+  <not-number>{0} ei ole numero</not-number>
+  <no-tag>Tiedostolla %s ei ole tagia %s</no-tag>
+  <wrong-search>%s ei kelpaa hakuasetukseksi. K&#xE4;yt&#xE4; joko inc tai exc.</wrong-search>
+  <no-selection>Mit&#xE4;&#xE4;n ei ole valittu</no-selection>
+  <add-selected>Lis&#xE4;t&#xE4;&#xE4;nk&#xF6; valitut tiedostot kokoelmaan?</add-selected>
+  <which-collection>Mihin kokoelmaan haluat lis&#xE4;t&#xE4;?</which-collection>
+  <exists>Kokoelma %s on jo olemassa</exists>
+</lang>

@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<settings>
+    <window>
+        <width>1024</width>
+        <height>768</height>
+        <bg>black</bg>
+    </window>
+    <external>gimp</external>
+    <gallery>
+        <thumbs>0</thumbs>
+        <thumbWidth>256</thumbWidth>
+        <thumbHeight>256</thumbHeight>
+    </gallery>
+    <delay>5</delay>
+    <lang>en</lang>
+    <columns>
+        <search>name,tags,collection,path</search>
+        <collection>name,tags,fc</collection>
+        <browse>name,tags,path</browse>
+    </columns>
+    <search>exc</search>
+    <toolbar>True</toolbar>
+    <order>asc</order>
+    <images>jpg,jpeg,bmp,png,gif</images>
+    <maxlen>75</maxlen>
+    <paths>paths.xml</paths>
+    <master>master</master>
+    <always-print>True</always-print>
+    <colls>colls</colls>
+    <page>20</page>
+</settings>
