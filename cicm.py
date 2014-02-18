@@ -37,9 +37,6 @@ if __name__ == "__main__":
     if argc > 1:
         command = args[1]
 
-    collspath = os.path.join(cicmpath, settings["colls"])
-    if not os.path.exists(collspath):
-        os.mkdir(collspath)
     if command != "graph":
         graphics    = ImageView()
         short_paths = Settings(os.path.join(cicmpath, settings["paths"]))
