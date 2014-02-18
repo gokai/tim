@@ -19,7 +19,7 @@ except ImportError:
 
 # non-standard modules should come with this file
 # if not you can find them from sourceforge.com
-from xfclib.manager import CollectionManager
+from db import FileDatabase
 from settings import Settings, Text
 from graphics import SlideShow, Gallery
 
@@ -33,8 +33,7 @@ class ImageView(object):
         os.chdir(path)
         self.settings = Settings(os.path.join(path, "cicm.xml"))
         paths = Settings(os.path.join(path, self.settings["paths"]))
-        self.man = CollectionManager(path, self.settings["master"],
-                ".xic", paths)
+        self.store = FileDatabase(self.settings["master"])
         self.text = Text(self.settings["lang"], path)
         self._selected = list()
         self._files = list()
@@ -87,7 +86,12 @@ class ImageView(object):
             return item in self._selected
 
     def slideshow(self, li, pos=0):
-        files = self.man.constructFilePath(li).value
+        if "path" not in li[0].keys():
+            l = list()
+            for c in li:
+                l.extend(self.store.list_files_in_collection(c["name"]))
+            li = l
+        files = self.store.get_full_paths(li)
         show = SlideShow(files, self.settings["window"]["width"],\
             self.settings["window"]["height"], self.settings["delay"],
             pos, self.settings["window"]["bg"], toolbar = self.settings["toolbar"])
@@ -123,19 +127,16 @@ class ImageView(object):
         if isinstance(cont, list):
             if len(cont) == 0:
                 return
-            if isinstance(cont[0], dict) and "id" in cont[0].keys() and ":" not in cont[0]["id"]:
-                tmp = map(self.man.listFiles, [x["name"] for x in cont])
+            if isinstance(cont[0], dict) and "path" not in cont[0].keys():
+                tmp = map(self.store.list_files_in_collection, [x["name"] for x in cont])
+                cont = list()
+                map(cont.extend, tmp)
             elif isinstance(cont[0], basestring):
-                tmp = map(self.man.listFiles, cont)
+                cont = map(self.store.list_files_in_collection, cont)
             else:
-                tmp = None
-
-            if tmp is not None:
-                cont = deque()
-                map(cont.extend, [c.value for c in tmp])
-                cont = list(cont)
+                cont = None
         elif isinstance(cont, basestring):
-            cont = self.man.listFiles(cont).value
+            cont = self.store.list_files_in_collection(cont)
         else:
             print cont, type(cont), "is not a valid argument for ImageView.gallery"
             return
@@ -145,7 +146,7 @@ class ImageView(object):
         if limit == 0:
             limit = self.settings["gallery"]["thumbs"]
 
-        paths = self.man.constructFilePath(cont).value
+        paths = self.store.get_full_paths(cont)
         gallery = Gallery(paths, cont, limit,
             self.settings["gallery"]["thumbWidth"], self.settings["gallery"]["thumbHeight"],
             self.settings["window"]["width"],

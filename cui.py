@@ -2,6 +2,8 @@ __author__  = "Tachara (tortured.flame@gmail.com)"
 __date__ = "$Date 2012/01/29 16:31:00 $"
 __copyright__ = "Copyright (c) 2010 Tachara"
 
+import time
+
 import os
 import mimetypes
 import itertools
@@ -17,6 +19,8 @@ except ImportError:
 # if not you can find them from sourceforge.com
 from interpreter import CommandInterpreter as CI
 from xfclib.manager import CollectionManager
+import db
+FileDatabase = db.FileDatabase
 
 
 class DataStore(list):
@@ -347,6 +351,7 @@ class ImageCollectionLibrary(object):
         self.text     = lang 
         self.man      = CollectionManager(master_dir, settings["master"],
                                           ".xic", short_paths)
+        self.store    = FileDatabase(settings["master"])
 
     def moveFiles(self, files, destination):
         ids = [x["id"] for x in files]
@@ -369,9 +374,7 @@ class ImageCollectionLibrary(object):
         tags = ""
         while tags == "" or tags.isspace():
             tags = raw_input()
-        message = self.man.createCollection(name, tags)
-        if message.isError:
-            print self.text["exists"] % name
+        self.store.add_collection(name, tags.split(','))
 
     def deleteCollection(self, li):
         print "Delete(y/n)?"
@@ -380,15 +383,13 @@ class ImageCollectionLibrary(object):
         if ans != "y":
             return
         for name in li:
-            i = self.man.getId(name)
-            self.man.deleteCollection(i)
+            self.store.remove_collection(name)
             print "Deleted", name
 
     def tagList(self, graphics):
         """generates a list of tags found in the database"""
     
-        s = self.man.allTags()
-        li = list(s)
+        li = self.store.list_tags()
         # TableView reguires the data to be in a list of
         # dictionaries which contain at least the keys given
         for i,item in enumerate(li):
@@ -406,9 +407,10 @@ class ImageCollectionLibrary(object):
 
     def browseMaster(self, graphics):
         """Browse collections in the database"""
-        colls = self.man.listCollections().value
+        collections = self.store.list_collections()
+
         fields = self.settings["columns"]["collection"].split(",")
-        view = TableView(colls, fields, self.settings["page"],
+        view = TableView(collections, fields, self.settings["page"],
                 self.settings["maxlen"], True, self.text)
 
         ci = CollectionInterpreter(view, graphics, 
@@ -432,11 +434,13 @@ class ImageCollectionLibrary(object):
 
     def removeImages(self, images):
         print self.text["edit-rm"] 
+        ids = dict()
         for fi in images:
             print "   ", fi["name"]
+            ids[os.path.join(fi["path"], fi["name"])] = fi["id"]
         a = raw_input()
         if a == self.text["yes"]:
-            self.man.removeFileFromCollection(images)
+            self.store.remove_files(ids)
         elif a == self.text["no"]:
             pass
 
@@ -449,36 +453,34 @@ class ImageCollectionLibrary(object):
             print images
             images = [images,]
 
-        collId = self.man.getId(collection)
-        if collid.isError:
+        coll_tags = self.man.get_collection_tags(collection)
+        if len(coll_tags) == 0:
             print collection, self.text["collection-not-found"]
             return False
 
         # ask if the user wants to add tags for the images
         print self.text["add-q"]
         ask = raw_input()
-        ask_tags = ask == self.text["yes"]
+        ask_tags = (ask == self.text["yes"])
 
-        tags = "N/A"
-        if ask_tags:
-            tags =[]
-        # looping over a copy to enable removing items from original
-        for image in images[:]:
+        filedicts = list
+        for image in images:
             if (os.path.isfile(image) and
                     "image" in mimetypes.guess_type(image)[0]):
+                img_tags = coll_tags
                 if ask_tags:
                     print self.text["add-tags"] % image
-                    tags.append(raw_input())
+                    tags = raw_input()
+                    img_tags.extend(tags.split(','))
+                filedicts.append({"name":image, "tags":img_tags})
             elif os.path.isdir(image):
                 # a given path is a directory, ask if it should be  added
                 print self.text["is-dir"] % image,
                 ans = raw_input()
                 if ans == self.text["yes"]:
                     self.addDirectory(image, collection)
-                # remove the directory from the list of images
-                images.remove(image)
 
-        self.man.insertFiles(images, collId.value, tags)
+        self.store.add_files(filedicts)
         return True
     # end addImages
     
@@ -519,10 +521,9 @@ class ImageCollectionLibrary(object):
     def browseCollection(self, name, graphics):
         """View contents of a collection."""
     
-        ret = self.man.listFiles(name)
-        files = ret.value
+        files = self.store.list_files_in_collection(name)
 
-        if ret.isError:
+        if len(files) == 0:
             print name, self.text["collection-not-found"] 
             return
 
@@ -553,23 +554,21 @@ class ImageCollectionLibrary(object):
             print self.text["give-tags"]
             while tags == "":
                 tags = raw_input()
-        collId = self.man.getId(collName)
-        if collId.isError:
-            print collId.value
+        coll_tags = self.man.getId(collName)
+        if len(coll_tags):
+            print "collection not found"
             return
 
+        file_tags = coll_tags
+        file_tags.extend(tags.split(','))
         contentList = os.listdir(directory)
-        li = []
+        filedicts = list()
         for item in contentList:
             path = os.path.join(directory, item)
             if os.path.isfile(path):
-                li.append(path)    
-        if tags != "":
-            ret = self.man.insertFiles(li, collId.value, tags.split(","))
-        else:
-            ret = self.man.insertFiles(li, collId.value)
+                filedicts.append(dict(name = path, tags = file_tags))
     
-        print ret.value
+        self.store.add_files(filedicts)
     #end addDirectory
     
     def search(self, tags, s, graphics):
@@ -580,23 +579,23 @@ class ImageCollectionLibrary(object):
             comp = s
     
         if comp == "exc":
-            li = self.man.searchFiles(tagList, False)
+            li = self.store.search_by_tags(tags.split(','), db.SEARCH_EXCLUSIVE)
         elif comp == "inc":
-            li = self.man.searchFiles(tagList, True)
+            li = self.store.search_by_tags(tags.split(','), db.SEARCH_INCLUSIVE)
         else:
             print self.text["wrong-search"] % comp
             return
 
-        if not li.isError:
+        if len(li) > 0:
             fields = self.settings["columns"]["search"].split(",")
-            view = TableView(li.value, fields, self.settings["page"], 
+            view = TableView(li, fields, self.settings["page"], 
                                      self.settings["maxlen"], True, self.text)
             ci = CollectionInterpreter(view, graphics, 
                                        self.settings["always-print"], self)
             ci.prompt = "search > "
             ci.cmdloop()
         else :
-            print li.value, "search"
+            print "Nothing was found."
     
 
 class ViewInterpreter(CI):
