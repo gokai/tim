@@ -25,6 +25,29 @@ class ExportDialect(csv.Dialect):
     skipinitialspace = True
     strict = True
 
+class MyDict(dict):
+    def __init__(self, *args, **kwargs):
+        self.sup = super(MyDict, self)
+        self.sup.__init__(*args, **kwargs)
+        self.tags_set = False
+        self.fc_set = False
+
+    def set_get_tags(self, func):
+        self.get_tags = func
+
+    def set_get_fc(self, func):
+        self.get_fc = func
+
+    def __getitem__(self, key):
+        if key == "tags" and not self.tags_set:
+            self.tags_set = True
+            self["tags"] = self.get_tags(self.id)
+        elif key == "fc" and not self.fc_set:
+            self.fc_set = True
+            self["fc"] = self.get_fc(self.id)
+        return self.sup.__getitem__(key)
+
+
 class FileDatabase(object):
 
     def __init__(self, dbname):
@@ -95,6 +118,12 @@ class FileDatabase(object):
             cursor.execute("select id from tags where name = ?", (t, ))
             ids[t] = cursor.fetchone()[0]
         return ids
+
+    def get_full_paths(self, files):
+        ret = list()
+        for f in files:
+            ret.append(os.path.join(f["path"], f["name"]))
+        return ret
 
     def get_file_tags(self, fileid):
         cursor = self.connection.cursor()
@@ -191,13 +220,15 @@ class FileDatabase(object):
         """Returns a list of dictionaries of all files that match search_string.
            search_string  a string with sql wildcards"""
         cursor = self.connection.cursor()
-        cursor.execute("""SELECT files.name AS name, paths.name AS path, date 
+        cursor.execute("""SELECT files.id AS id, files.name AS name, paths.name AS path, date 
                 FROM files, paths
                 WHERE paths.id = files.path AND files.name LIKE :ss""",
                 { "ss":search_string })
         res = list()
         for row in cursor:
-            res.append(dict(row))
+            res.append(MyDict(row))
+            res[-1].set_get_tags(self.get_file_tags(res[-1]["id"]))
+            res[-1].id = res[-1]["id"]
         return res
 
     def search_by_tags(self, tags, search_type = SEARCH_EXCLUSIVE):
@@ -217,7 +248,9 @@ class FileDatabase(object):
         res = list()
         for row in cursor:
             if search_type == SEARCH_INCLUSIVE or row["tags_matched"] == len(tags):
-                res.append(dict(row))
+                res.append(MyDict(row))
+                res[-1].set_get_tags(lambda x: self.get_file_tags(x))
+                res[-1].id = res[-1]["id"]
         return res
 
     def add_tags_to_collection(self, name, tags):
@@ -267,8 +300,16 @@ class FileDatabase(object):
         return self._list_names("tags")
 
     def list_collections(self):
-        """Returns a list of all collection names in the database."""
-        return self._list_names("collections")
+        """Returns a list of all collection data in the database."""
+        names = self._list_names("collections")
+        ret = list()
+        for n in names:
+            d = MyDict(name=n)
+            d.id = n
+            d.set_get_tags(lambda x: self.get_collection_tags(x))
+            d.set_get_fc(lambda x: len(self.list_files_in_collection(x)))
+            ret.append(d)
+        return ret
 
     def list_files_in_collection(self, collection):
         tags = self.get_collection_tags(collection)
