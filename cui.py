@@ -18,7 +18,6 @@ except ImportError:
 # non-standard modules should come with this file
 # if not you can find them from sourceforge.com
 from interpreter import CommandInterpreter as CI
-from xfclib.manager import CollectionManager
 import db
 FileDatabase = db.FileDatabase
 
@@ -349,24 +348,10 @@ class ImageCollectionLibrary(object):
     def __init__(self, master_dir, settings, short_paths, lang):
         self.settings = settings
         self.text     = lang 
-        self.man      = CollectionManager(master_dir, settings["master"],
-                                          ".xic", short_paths)
         self.store    = FileDatabase(settings["master"])
 
-    def moveFiles(self, files, destination):
-        ids = [x["id"] for x in files]
-        destCollId = self.man.getId(destination)
-        ret = self.man.moveFiles(ids, destCollId)
-        if ret.isError:
-            print "Could not move:", ret.value
-            return
-        for f in files:
-            self.view.content.remove(f)
-
     def update(self, name):
-        i = self.man.getId(name)
-        data = self.man.listFiles(name)[0]
-        self.man.updateFileInfo(i, data)
+        return
 
     def createCollection(self, name):
         print self.text["create"]
@@ -398,7 +383,7 @@ class ImageCollectionLibrary(object):
         fields = ["name"]
         view = TagView(li, fields, self.settings["page"],
                 self.settings["maxlen"], True, self.text,
-                self.man.searchFiles)
+                self.store.search_by_tags)
         ci = ViewInterpreter(view, graphics, True)
         self.view = view
         ci.prompt = "tags > "
@@ -453,7 +438,7 @@ class ImageCollectionLibrary(object):
             print images
             images = [images,]
 
-        coll_tags = self.man.get_collection_tags(collection)
+        coll_tags = self.store.get_collection_tags(collection)
         if len(coll_tags) == 0:
             print collection, self.text["collection-not-found"]
             return False
@@ -498,8 +483,8 @@ class ImageCollectionLibrary(object):
             return
 
         for item in items:
-            self.man.addTags(item["id"], tags.split(","))
-            item["tags"] = ",".join(self.man.listTags(item["id"]))
+            self.store.add_tags_to_files(item["id"], tags.split(','))
+            item["tags"] = ",".join(self.store.get_file_tags(item["id"]))
 
     def removeTags(self, itemLi, tags = None):
         if tags is None:
@@ -510,13 +495,12 @@ class ImageCollectionLibrary(object):
                 print self.text["edit-rt-q"]
                 remTags = raw_input()
                 remTags = remTags.split(",")
-                message = self.man.removeTags(remTags, item["id"])
-                item["tags"] = self.man.listTags(item["id"])
+                self.store.remove_tags_from_file(item["id"], remTags)
+                item["tags"] = self.store.get_file_tags(item["id"])
         else:
             for item in itemLi:
-                message = self.man.removeTags(tags, item["id"])
-                item["tags"] = ",".join(self.man.listTags(item["id"]))
-                print message.value
+                self.store.remove_tags(item["id"], tags)
+                item["tags"] = ",".join(self.store.get_file_tags(item["id"]))
 
     def browseCollection(self, name, graphics):
         """View contents of a collection."""
@@ -554,7 +538,7 @@ class ImageCollectionLibrary(object):
             print self.text["give-tags"]
             while tags == "":
                 tags = raw_input()
-        coll_tags = self.man.getId(collName)
+        coll_tags = self.store.get_collection_tags(collName)
         if len(coll_tags):
             print "collection not found"
             return
