@@ -131,9 +131,7 @@ class FileDatabase(object):
                             FROM file_tags, tags
                             WHERE file_tags.tag_id = tags.id and
                               file_tags.file_id = ?""", (fileid,))
-        res = list()
-        for tag in cursor:
-            res.append(tag[0])
+        res = [tag['name'] for tag in cursor]
         return res
 
     def create_tags(self, tags):
@@ -141,7 +139,7 @@ class FileDatabase(object):
            Called automatically by all tag adding methods.
            tags   an iterable of tag names."""
         cursor = self.connection.cursor()
-        cursor.executemany("INSERT INTO tags(name) VALUES (?)", [(t,) for t in tags])
+        cursor.executemany("INSERT INTO tags(name) VALUES (?)", ((t,) for t in tags))
 
     def add_files(self, fileinfos):
         """Adds new files to the database.
@@ -213,7 +211,7 @@ class FileDatabase(object):
         tag_ids = self.get_tag_ids(tags)
         cursor.execute("BEGIN")
         cursor.executemany("DELETE FROM file_tags WHERE file_id = ? AND tag_id = ?",
-                [(item, tag_ids[key]) for key in tag_ids.keys()])
+                ((item, tag_ids[key]) for key in tag_ids.keys()))
         self.connection.commit()
 
     def search_by_name(self, search_string):
@@ -263,7 +261,7 @@ class FileDatabase(object):
         self.create_tags(tags)
         tag_ids = self.get_tag_ids(tags)
         cursor.executemany("INSERT INTO collection_tags(collection_id, tag_id) VALUES(?, ?)",
-                [(item, tag_ids[key]) for key in tag_ids.keys()])
+                ((item, tag_ids[key]) for key in tag_ids.keys()))
         self.connection.commit()
 
     def add_collection(self, name, tags):
@@ -348,4 +346,5 @@ class FileDatabase(object):
 
     def import_collection(self, filename, common_root="."):
         """Adds an exported collection and its files to the database."""
+        pass
 
