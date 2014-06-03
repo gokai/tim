@@ -16,11 +16,12 @@ import csv
 SEARCH_EXCLUSIVE = 'e'
 SEARCH_INCLUSIVE = 'i'
 
+# using Unit and record separator chars as delimiters
+# -> no collisions
 class ExportDialect(csv.Dialect):
-    delimiter = "|"
+    delimiter = "\u001F"
     doublequote = False
-    escapechar = "'"
-    lineterminator = "\n"
+    lineterminator = "\u001E"
     quoting = csv.QUOTE_NONE
     skipinitialspace = True
     strict = True
@@ -335,7 +336,6 @@ class FileDatabase(object):
             files = self.list_files_in_collection(collection)
             pathlist = [f["path"] for f in files]
             common_root = os.path.commonprefix(pathlist)
-            print(common_root)
             for path in pathlist:
                 if "/media/files/kuvat/muut/instructor" not in path:
                     print(path)
