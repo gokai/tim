@@ -4,6 +4,7 @@ __author__  = "tachara (tortured.flame@gmail.com)"
 import os
 import sys
 from math import floor
+
 try:
     from Tkinter import *
     from ttk import *
@@ -95,10 +96,10 @@ class Gallery(Canvas):
         self.make_view()
         self.make_bindings()
         self.activate_func = activate_func
+        self.configure(takefocus=1)
 
     def make_bindings(self):
         self.bind('<Expose>', lambda e: self.reload())
-        self.configure(takefocus=1)
         self.bind('<Button-4>', self.scroll)
         self.bind('<Button-5>', self.scroll)
         self.bind('<j>', self.cursor_down)
