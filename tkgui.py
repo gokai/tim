@@ -9,45 +9,44 @@ from tkinter.ttk import *
 from db import FileDatabase
 from tkgraphics import SlideShow, Gallery
 
-class FileView(Frame):
+class FileView(Treeview):
 
     def __init__(self, main, files, keys):
         self.files = files
         self.keys = keys
-        self.tree_ids = dict()
+        self.file_tree_ids = dict()
         self.images = list()
         self.main = main
-        self.img_view = None
-        self.gall = None
-        super(FileView, self).__init__(main.root)
+        super(FileView, self).__init__(self.main.root, columns=self.keys[1:])
+        self.area_select = False
         self.create_view()
         self.bind_events()
 
     def create_view(self):
-        self.view = Treeview(self.main.root, columns=self.keys[1:])
-        self.view.grid(column=0, row=0, sticky=(N, S, W, E))
-
-        self.view.heading('#0', text=self.keys[0])
+        self.heading('#0', text=self.keys[0])
         for key in self.keys[1:]:
-            self.view.heading(key, text=key)
+            self.heading(key, text=key)
 
         self.index = 0
         self.after(50, self.load_row)
 
+    def start_area_select(self):
+        self.area_select = not self.area_select
+        self.selection_add(self.focus())
+
     def bind_events(self):
         slide_fun = lambda e: self.slide()
-        self.view.bind('<Double-1>',slide_fun)
-        self.view.bind('<s>', slide_fun)
-        self.view.bind('<g>', self.gallery)
-
-
-    def quit(self):
-        self.main.root.quit()
-        self.main.root.destroy()
+        self.bind('<Double-1>',slide_fun)
+        self.bind('vf', slide_fun)
+        self.bind('vg', lambda e: self.gallery())
+        self.bind('ss', lambda e: self.selection_toggle(self.focus()))
+        self.bind('sa', lambda e: self.start_area_select())
+        self.bind('j', lambda e: self.next_row())
+        self.bind('k', lambda e: self.prev_row())
 
     def get_selection_paths(self):
-        sel = self.view.selection()
-        fli = (self.tree_ids[i] for i in sel)
+        sel = self.selection()
+        fli = (self.file_tree_ids[i] for i in sel)
         return [os.path.join(f['path'], f['name']) for f in fli]
 
     def slide(self, indexes=None):
@@ -57,18 +56,48 @@ class FileView(Frame):
         ss = SlideShow(self.main.root, paths)
         self.main.new_view(ss)
 
-    def gallery(self, event=None):
+    def gallery(self):
         paths = self.get_selection_paths()
         g = Gallery(self.main.root, paths, (200, 200), self.slide)
         self.main.new_view(g)
 
+    def prev_row(self):
+        focused = self.focus()
+        nitem = ''
+        if focused == '':
+            nitem = self.get_children()[0]
+        else:
+            nitem = self.prev(focused)
+        if nitem != '':
+            self.move_focus(nitem)
+
+    def next_row(self):
+        focused = self.focus()
+        nitem = ''
+        if focused == '':
+            nitem = self.get_children()[0]
+        else:
+            nitem = self.next(focused)
+        if nitem != '':
+            self.move_focus(nitem)
+
+    def move_focus(self, nitem):
+        self.focus(nitem)
+        if self.area_select:
+            self.selection_add(nitem)
+        self.see(nitem)
+
     def load_row(self):
         f = self.files[self.index]
-        tid = self.view.insert('', 'end', text=f[self.keys[0]], values=(','.join(f[self.keys[1]]),))
-        self.tree_ids[tid] = f
+        tid = self.insert('', 'end', text=f[self.keys[0]], values=(','.join(f[self.keys[1]]),))
+        self.file_tree_ids[tid] = f
         self.index += 1
         if self.index < len(self.files):
             self.after_idle(self.load_row)
+
+    def quit(self):
+        self.main.root.quit()
+        self.main.root.destroy()
 
 class Main(object):
 
