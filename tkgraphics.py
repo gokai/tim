@@ -19,23 +19,23 @@ import keybindings as kb
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
-class SlideShow(Frame):
+class SlideShow(Label):
 
     def __init__(self, root, paths, pos=0):
         self.paths = paths
         self.img = paths[pos]
         self.pos = pos
         super(SlideShow, self).__init__(root)
+        self.root = root
         self.make_view()
-        self.master = root
         self.bind('<Expose>', lambda e: self.reload())
         actions = {'next':lambda e: self.next(), 'prev':lambda e: self.prev(),
                 'reload':lambda e: self.reload()}
         kb.make_bindings(kb.slideshow, actions, self.bind)
 
     def reload(self):
-        w = self.winfo_width()
-        h = self.winfo_height()
+        w = self.root.winfo_width()
+        h = self.root.winfo_height()
         if self._pil_image is None or h != self.prev_h or w != self.prev_w:
             self.prev_h = h
             self.prev_w = w
@@ -44,16 +44,15 @@ class SlideShow(Frame):
             img = self._pil_image.copy()
             resize(img, h, w)
             self.photo = PhotoImage(img)
-            self.label['image'] = self.photo
+            self['image'] = self.photo
 
     def make_view(self):
         self._tid = None
         self._pil_image = None
         self.prev_w = 0
         self.prev_h = 0
-        self.label = Label(self)
+        self['anchor'] = CENTER
         self.reload()
-        self.label.grid(column=0, row=0)
 
     def next(self):
         self.pos += 1
