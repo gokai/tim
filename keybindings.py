@@ -13,6 +13,10 @@ gallery = {
         'k':'cursor_up',
         'h':'cursor_left',
         'l':'cursor_right',
+        '<Down>':'cursor_down',
+        '<Up>':'cursor_up',
+        '<Left>':'cursor_left',
+        '<Right>':'cursor_right',
         '<Control-c>':'clear_selection',
         '<Return>':'slide'
 }
@@ -28,6 +32,8 @@ slideshow = {
 fileview = {
         'j':'focus_next_row',
         'k':'focus_prev_row',
+        '<Down>':'focus_next_row',
+        '<Up>':'focus_prev_row',
         'vg':'gallery',
         'vf':'slide',
         'ss':'toggle_select',
