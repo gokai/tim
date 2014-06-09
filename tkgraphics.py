@@ -15,6 +15,7 @@ except ImportError:
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 
+import keybindings as kb
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
@@ -28,9 +29,9 @@ class SlideShow(Frame):
         self.make_view()
         self.master = root
         self.bind('<Expose>', lambda e: self.reload())
-        self.bind('<n>', lambda e: self.next())
-        self.bind('<p>', lambda e: self.prev())
-        self.bind('<r>', lambda e: self.reload())
+        actions = {'next':lambda e: self.next(), 'prev':lambda e: self.prev(),
+                'reload':lambda e: self.reload()}
+        kb.make_bindings(kb.slideshow, actions, self.bind)
 
     def reload(self):
         w = self.winfo_width()
@@ -100,14 +101,15 @@ class Gallery(Canvas):
 
     def make_bindings(self):
         self.bind('<Expose>', lambda e: self.reload())
+        actions = {'slide': self.activate,
+                'clear_selection': lambda e: self.clear_selection(),
+                'cursor_up':self.cursor_up,
+                'cursor_right':self.cursor_right,
+                'cursor_left':self.cursor_left,
+                'cursor_down':self.cursor_down,}
         self.bind('<Button-4>', self.scroll)
         self.bind('<Button-5>', self.scroll)
-        self.bind('<j>', self.cursor_down)
-        self.bind('<k>', self.cursor_up)
-        self.bind('<h>', self.cursor_left)
-        self.bind('<l>', self.cursor_right)
-        self.bind('<Control-c>', lambda e: self.clear_selection())
-        self.bind('<Return>', self.activate)
+        kb.make_bindings(kb.gallery, actions, self.bind)
 
     def make_view(self):
         self.style = Style()

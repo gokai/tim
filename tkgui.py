@@ -8,6 +8,7 @@ from tkinter.ttk import *
 
 from db import FileDatabase
 from tkgraphics import SlideShow, Gallery
+import keybindings as kb
 
 class FileView(Treeview):
 
@@ -35,14 +36,13 @@ class FileView(Treeview):
         self.selection_add(self.focus())
 
     def bind_events(self):
-        slide_fun = lambda e: self.slide()
-        self.bind('<Double-1>',slide_fun)
-        self.bind('vf', slide_fun)
-        self.bind('vg', lambda e: self.gallery())
-        self.bind('ss', lambda e: self.selection_toggle(self.focus()))
-        self.bind('sa', lambda e: self.start_area_select())
-        self.bind('j', lambda e: self.next_row())
-        self.bind('k', lambda e: self.prev_row())
+        actions = {'slide': lambda e: self.slide(),
+                'gallery': lambda e: self.gallery(),
+                'focus_next_row': lambda e: self.next_row(),
+                'focus_prev_row': lambda e: self.prev_row(),
+                'toggle_select': lambda e: self.selection_toggle(self.focus()),
+                'toggle_area_select': lambda e: self.start_area_select()}
+        kb.make_bindings(kb.fileview, actions, self.bind)
 
     def get_selection_paths(self):
         sel = self.selection()
@@ -104,8 +104,6 @@ class Main(object):
     def __init__(self):
         self.root = Tk()
         self.root.title('GICM')
-        self.root.bind_all('<Control-q>', lambda e: self.quit())
-        self.root.bind_all('<Control-w>', lambda e: self.next_view())
         self.root.focus_set()
         self.root.rowconfigure(0, weight=1)
         self.root.columnconfigure(0, weight=1)
@@ -114,6 +112,9 @@ class Main(object):
         self.menubar.add_command(command=self.quit, label='Quit')
         self.views = list()
         self.cur_view = 0
+        kb.make_bindings(kb.appwide,{'quit':lambda e: self.quit(),
+            'nview':lambda e: self.next_view()}, self.root.bind_all)
+
 
     def new_view(self, view):
         # 'puskurit' ala vim, mahd. tabit/listaus näkyviin
