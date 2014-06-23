@@ -38,13 +38,21 @@ fileview = {
         'vf':'slide',
         'ss':'toggle_select',
         'sa':'toggle_area_select',
+        'e':'edit_tags',
         '<Double-1>':'slide',
+}
+
+# Edit view bindings
+editview = {
+        'g':'focus_gallery',
+        't':'focus_tags'
 }
 
 # Bindings global to the application
 appwide = {
         '<Control-q>':'quit',
         '<Control-w>':'nview',
+        '<Control-d>':'delete_view'
 }
 
 

@@ -8,6 +8,7 @@ from tkinter.ttk import *
 
 from db import FileDatabase
 from tkgraphics import SlideShow, Gallery
+from tkeditview import EditView
 import keybindings as kb
 
 class FileView(Treeview):
@@ -38,10 +39,13 @@ class FileView(Treeview):
     def bind_events(self):
         actions = {'slide': lambda e: self.slide(),
                 'gallery': lambda e: self.gallery(),
+                'edit': lambda e: self.edit(),
                 'focus_next_row': lambda e: self.next_row(),
                 'focus_prev_row': lambda e: self.prev_row(),
                 'toggle_select': lambda e: self.selection_toggle(self.focus()),
-                'toggle_area_select': lambda e: self.start_area_select()}
+                'toggle_area_select': lambda e: self.start_area_select(),
+                'edit_tags':lambda e: self.edit_tags(),
+        }
         kb.make_bindings(kb.fileview, actions, self.bind)
 
     def get_selection_paths(self):
@@ -58,8 +62,16 @@ class FileView(Treeview):
 
     def gallery(self):
         paths = self.get_selection_paths()
-        g = Gallery(self.main.root, paths, (200, 200), self.slide)
+        g = Gallery(self.main.root, paths, (256, 256), self.slide)
         self.main.new_view(g)
+
+    def edit_tags(self, indexes=None):
+        fli = [self.file_tree_ids[i] for i in self.selection()]
+        if indexes is not None:
+            fli = [fli[i] for i in indexes]
+        e = EditView(self.main.root, fli, update=self.update, image_view=SlideShow,
+                full_view=self.slide)
+        self.main.new_view(e)
 
     def prev_row(self):
         focused = self.focus()
@@ -95,9 +107,8 @@ class FileView(Treeview):
         if self.index < len(self.files):
             self.after_idle(self.load_row)
 
-    def quit(self):
-        self.main.root.quit()
-        self.main.root.destroy()
+    def update(self):
+        pass
 
 class Main(object):
 
@@ -112,18 +123,17 @@ class Main(object):
         self.menubar.add_command(command=self.quit, label='Quit')
         self.views = list()
         self.cur_view = 0
+        self.delete_current_view = lambda e: self.remove_view(self.views[self.cur_view]) 
         kb.make_bindings(kb.appwide,{'quit':lambda e: self.quit(),
-            'nview':lambda e: self.next_view()}, self.root.bind_all)
-
+            'next_view':lambda e: self.next_view(), 'delete_view': self.delete_current_view},
+            self.root.bind_all)
 
     def new_view(self, view):
-        # 'puskurit' ala vim, mahd. tabit/listaus näkyviin
         if len(self.views) >= 1:
             self.views[-1].grid_remove()
         self.views.append(view)
         view.grid(column=0, row=0, sticky=(N, W, S, E))
         view.focus_set()
-        view.bind('q', lambda e: self.remove_view(view))
         self.cur_view = len(self.views) - 1
 
     def remove_view(self, view):
@@ -156,6 +166,6 @@ if __name__ == "__main__":
     db = FileDatabase('/media/files/koodi/tagged_file_manager/master.sqlite')
     li = db.search_by_tags(['nsfw'])
     gui = Main()
-    gui.new_view(FileView(gui, li[:500], ('name', 'tags')))
+    gui.new_view(FileView(gui, li, ('name', 'tags')))
     gui.display()
 
