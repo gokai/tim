@@ -112,9 +112,9 @@ class Gallery(Canvas):
 
     def make_view(self):
         self.style = Style()
-        self.style.configure('Cursor.TLabel', background='red')
-        self.style.configure('Selected.TLabel', background='blue')
-        self.style.configure('TLabel', padding=3)
+        self.style.configure('Gallery.TLabel', padding=3)
+        self.style.configure('Cursor.Gallery.TLabel', background='red')
+        self.style.configure('Selected.Gallery.TLabel', background='blue')
         self['yscrollincrement'] = 10
         self.prev_w = self.winfo_width()
         self.load_pos = 0
@@ -135,7 +135,7 @@ class Gallery(Canvas):
     def clear_selection(self):
         self.dtag('selected', 'selected')
         for index in self.selection:
-            self.photos[index].configure(style='TLabel')
+            self.photos[index].configure(style='Gallery.TLabel')
         self.selection.clear()
 
     def button_callback(self, event, column, row):
@@ -193,7 +193,7 @@ class Gallery(Canvas):
             img = Image.open(self.paths[self.load_pos])
             resize(img, self.thumb_h, self.thumb_w)
             photo = PhotoImage(img)
-            label = Label(image=photo)
+            label = Label(image=photo, style='Gallery.TLabel')
             label.img = photo
             label.index = self.load_pos
             label.bind('<Button-4>', lambda e: self.yview(SCROLL, -1, UNITS))
@@ -208,14 +208,15 @@ class Gallery(Canvas):
             self.column += 1
         except OSError:
             print(self.paths[self.load_pos])
+            self.paths.pop(self.load_pos)
+            self.after_idle(self.load_next)
         if self.column >= self.max_columns:
             self.row += 1
             self.column = 0
         if self.load_pos < len(self.paths) - 1:
             self.load_pos += 1
             self.after_idle(self.load_next)
-        bbox = self.bbox(self.photos[-1].cid)
-        self['scrollregion'] = (0, -5, 0, bbox[3])
+        self['scrollregion'] = self.bbox('all')
 
     def cursor_up(self, e):
         column = self.cursor[0]
@@ -257,7 +258,7 @@ class Gallery(Canvas):
         self.set_cursor(item, column, row)
 
     def set_cursor(self, item, column, row, index=None):
-        item.configure(style='Cursor.TLabel')
+        item.configure(style='Cursor.Gallery.TLabel')
         self.cursor = (column, row, index or row*self.max_columns + column)
         self.addtag_withtag('selected', item.cid)
         self.view_item(item)
@@ -266,11 +267,11 @@ class Gallery(Canvas):
     def remove_cursor(self, item, state):
         # control key was down -> selection
         if state & 0x0004:
-            item.configure(style='Selected.TLabel')
+            item.configure(style='Selected.Gallery.TLabel')
         else:
             if 'selected' in self.gettags(item.cid):
                 self.selection.remove(item.index)
-            item.configure(style='TLabel')
+            item.configure(style='Gallery.TLabel')
             self.dtag(item.cid, 'selected')
 
     def view_item(self, item):
