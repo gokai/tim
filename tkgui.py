@@ -113,13 +113,16 @@ class FileView(Treeview):
 class Main(object):
 
     def __init__(self):
-        self.root = Tk()
-        self.root.title('GICM')
-        self.root.focus_set()
-        self.root.rowconfigure(0, weight=1)
-        self.root.columnconfigure(0, weight=1)
+        root = Tk()
+        self.notebook = Notebook(root)
+        self.notebook.enable_traversal()
+        self.root = self.notebook
+        root.title('GICM')
+        root.focus_set()
+        root.rowconfigure(0, weight=1)
+        root.columnconfigure(0, weight=1)
         self.menubar = Menu(self.root)
-        self.root['menu'] = self.menubar
+        root['menu'] = self.menubar
         self.menubar.add_command(command=self.quit, label='Quit')
         self.views = list()
         self.cur_view = 0
@@ -127,43 +130,42 @@ class Main(object):
         kb.make_bindings(kb.appwide,{'quit':lambda e: self.quit(),
             'next_view':lambda e: self.next_view(), 'delete_view': self.delete_current_view},
             self.root.bind_all)
+        self.notebook.grid(row=0, column=0, sticky=(N, S, W, E))
+        self._root = root
 
     def new_view(self, view):
-        if len(self.views) >= 1:
-            self.views[-1].grid_remove()
         self.views.append(view)
-        view.grid(column=0, row=0, sticky=(N, W, S, E))
-        view.focus_set()
         self.cur_view = len(self.views) - 1
+        self.notebook.add(view, text='Tab {}'.format(self.cur_view))
+        self.notebook.select(view)
+        view.focus_set()
 
     def remove_view(self, view):
-        view.destroy()
         self.views.remove(view)
+        self.notebook.forget(view)
         if len(self.views) >= 1:
-            self.views[-1].grid()
             self.views[-1].focus_set()
             self.cur_view -= 1
+            self.notebook.select(self.cur_view)
         else:
             self.quit()
 
     def next_view(self):
-        old_view = self.views[self.cur_view]
-        old_view.grid_remove()
         self.cur_view += 1
         if self.cur_view >= len(self.views):
             self.cur_view = 0
         new_view = self.views[self.cur_view]
-        new_view.grid()
+        self.notebook.select(new_view)
         new_view.focus_set()
 
     def display(self):
-        self.root.mainloop()
+        self._root.mainloop()
 
     def quit(self):
-        self.root.destroy()
+        self._root.destroy()
 
 if __name__ == "__main__":
-    db = FileDatabase('/media/files/koodi/tagged_file_manager/master.sqlite')
+    db = FileDatabase('master.sqlite')
     li = db.search_by_tags(['nsfw'])
     gui = Main()
     gui.new_view(FileView(gui, li, ('name', 'tags')))
