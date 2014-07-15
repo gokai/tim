@@ -115,7 +115,7 @@ class Gallery(Canvas):
         self.style.configure('Gallery.TLabel', padding=3)
         self.style.configure('Cursor.Gallery.TLabel', background='red')
         self.style.configure('Selected.Gallery.TLabel', background='blue')
-        self['yscrollincrement'] = 10
+        self['confine'] = True
         self.prev_w = self.winfo_width()
         self.load_pos = 0
         self.row = 0
@@ -127,7 +127,6 @@ class Gallery(Canvas):
     def activate(self, e):
         self.activate_func(self.selection)
         self.focus_set()
-        self.make_bindings()
 
     def get_path(self, item_id):
         return self.paths[item_id]
@@ -135,21 +134,19 @@ class Gallery(Canvas):
     def clear_selection(self):
         self.dtag('selected', 'selected')
         for index in self.selection:
-            self.photos[index].configure(style='Gallery.TLabel')
+            self.set_state(self.photos[index], 'normal')
         self.selection.clear()
 
-    def button_callback(self, event, column, row):
-        if event.num == 1:
-            prev_item = self.photos[self.cursor[2]]
-            self.remove_cursor(prev_item, event.state)
-            self.set_cursor(event.widget, column, row)
+    def button_callback(self, event, item, column, row):
+        prev_item = self.photos[self.cursor[2]]
+        self.remove_cursor(prev_item, event.state)
+        self.set_cursor(item, column, row)
 
     def scroll(self, event):
-        if event.num == 4 and self.canvasy(0) > -5:
-            self.yview(SCROLL, -5, UNITS)
-        elif (event.num == 5 and
-              self.canvasy(self.winfo_height()) < self.bbox(self.photos[-1].cid)[3] + 5):
-            self.yview(SCROLL, 5, UNITS)
+        if event.num == 4:
+            self.yview(SCROLL, -1, UNITS)
+        elif event.num == 5:
+            self.yview(SCROLL, 1, UNITS)
 
     def reload(self):
         w = self.winfo_width()
@@ -169,7 +166,7 @@ class Gallery(Canvas):
             if self.repos == self.cursor[2]:
                 self.cursor = (self.repos_col, self.repos_row, self.repos)
             col, row = self.repos_col, self.repos_row
-            photo.bind('<Button-1>', lambda e: self.button_callback(e, col, row))
+            self.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
             self.repos_col += 1
 
         if self.repos_col >= self.max_columns:
@@ -193,23 +190,18 @@ class Gallery(Canvas):
             img = Image.open(self.paths[self.load_pos])
             resize(img, self.thumb_h, self.thumb_w)
             photo = PhotoImage(img)
-            label = Label(image=photo, style='Gallery.TLabel')
-            label.img = photo
-            label.index = self.load_pos
-            label.bind('<Button-4>', lambda e: self.yview(SCROLL, -1, UNITS))
-            label.bind('<Button-5>', lambda e: self.yview(SCROLL, 1, UNITS))
             col, row = self.column, self.row
-            label.bind('<Button-1>', lambda e: self.button_callback(e, col, row))
-            label.bind('<Double-Button-1>', self.activate)
-            self.photos.append(label)
+            self.photos.append(photo)
             x, y = self.calculate_pos(self.column, self.row)
-            label.cid = self.create_window(x, y, window=label)
-            self.addtag_withtag(label.cid, 'label')
+            photo.cid = self.create_image(x, y, image=photo)
+            photo.index = self.load_pos
+            self.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
+            self.tag_bind(photo.cid, '<Double-Button-1>', self.activate)
+            self.addtag_withtag(photo.cid, 'photo')
             self.column += 1
         except OSError:
             print(self.paths[self.load_pos])
-            self.paths.pop(self.load_pos)
-            self.after_idle(self.load_next)
+            self.load_pos += 1
         if self.column >= self.max_columns:
             self.row += 1
             self.column = 0
@@ -258,7 +250,7 @@ class Gallery(Canvas):
         self.set_cursor(item, column, row)
 
     def set_cursor(self, item, column, row, index=None):
-        item.configure(style='Cursor.Gallery.TLabel')
+        self.set_state(item, 'active')
         self.cursor = (column, row, index or row*self.max_columns + column)
         self.addtag_withtag('selected', item.cid)
         self.view_item(item)
@@ -267,32 +259,43 @@ class Gallery(Canvas):
     def remove_cursor(self, item, state):
         # control key was down -> selection
         if state & 0x0004:
-            item.configure(style='Selected.Gallery.TLabel')
+            self.set_state(item, 'selected')
         else:
-            if 'selected' in self.gettags(item.cid):
+            if 'selected' in self.gettags(item.cid) and item.index in self.selection:
                 self.selection.remove(item.index)
-            item.configure(style='Gallery.TLabel')
+            self.set_state(item, 'normal')
             self.dtag(item.cid, 'selected')
+
+    def set_state(self, item, state):
+        color = ''
+        if state == 'selected':
+            color = 'blue'
+        elif state == 'active':
+            color = 'red'
+
+        old_rect = getattr(item, 'rectangle_id', '')
+        if old_rect != '':
+            self.delete(old_rect)
+        bbox = self.bbox(item.cid)
+        item.rectangle_id = self.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], outline=color, width=8)
+        self.tag_lower(item.rectangle_id, item.cid)
 
     def view_item(self, item):
         bbox = self.bbox(item.cid)
-        max_y = self.canvasy(self.winfo_height())
-        min_y = self.canvasy(0)
-        bottom = (bbox[3] - max_y)
-        top = bbox[1] - min_y
-        n = 0
-        if bottom > 0:
-            n = bottom/int(self['yscrollincrement'])
-        if top < 0:
-            n = top/int(self['yscrollincrement'])
-        self.yview_scroll(int(n), UNITS)
+        max_y = self.bbox('all')[3]
+        max_visible_y = self.canvasy(self.winfo_height())
+        min_visible_y = self.canvasy(0)
+        top = bbox[1]
+        bottom = bbox[3]
+        if bottom > max_visible_y or top < min_visible_y:
+            self.yview_moveto((top + 1) / max_y)
 
 
 
 if __name__ == "__main__":
     from db import FileDatabase
 
-    db = FileDatabase('/media/files/koodi/tagged_file_manager/master.sqlite')
+    db = FileDatabase('master.sqlite')
     li = db.search_by_tags(['tausta'])
     li = db.get_full_paths(li)
     tk = Tk()
