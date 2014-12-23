@@ -51,7 +51,7 @@ editview = {
 # Bindings global to the application
 appwide = {
         '<Control-q>':'quit',
-        '<Control-w>':'nview',
+        '<Control-w>':'next_view',
         '<Control-d>':'delete_view'
 }
 
