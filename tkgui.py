@@ -12,105 +12,6 @@ from tkeditview import EditView
 from tagview import TagView
 import keybindings as kb
 
-class FileView(Treeview):
-
-    def __init__(self, main, files, keys):
-        self.files = files
-        self.keys = keys
-        self.file_tree_ids = dict()
-        self.images = list()
-        self.main = main
-        super(FileView, self).__init__(self.main.root, columns=self.keys[1:])
-        self.area_select = False
-        self.create_view()
-        self.bind_events()
-
-    def create_view(self):
-        self.heading('#0', text=self.keys[0])
-        for key in self.keys[1:]:
-            self.heading(key, text=key)
-
-        self.index = 0
-        self.after(50, self.load_row)
-
-    def start_area_select(self):
-        self.area_select = not self.area_select
-        self.selection_add(self.focus())
-
-    def bind_events(self):
-        actions = {'slide': lambda e: self.slide(),
-                'gallery': lambda e: self.gallery(),
-                'edit': lambda e: self.edit(),
-                'focus_next_row': lambda e: self.next_row(),
-                'focus_prev_row': lambda e: self.prev_row(),
-                'toggle_select': lambda e: self.selection_toggle(self.focus()),
-                'toggle_area_select': lambda e: self.start_area_select(),
-                'edit_tags':lambda e: self.edit_tags(),
-        }
-        kb.make_bindings(kb.fileview, actions, self.bind)
-
-    def get_selection_paths(self):
-        sel = self.selection()
-        fli = (self.file_tree_ids[i] for i in sel)
-        return [os.path.join(f['path'], f['name']) for f in fli]
-
-    def slide(self, indexes=None):
-        paths = self.get_selection_paths()
-        if indexes is not None:
-            paths = [paths[i] for i in indexes]
-        ss = SlideShow(self.main.root, paths)
-        self.main.new_view(ss)
-
-    def gallery(self):
-        paths = self.get_selection_paths()
-        g = Gallery(self.main.root, paths, (256, 256), self.slide)
-        self.main.new_view(g)
-
-    def edit_tags(self, indexes=None):
-        fli = [self.file_tree_ids[i] for i in self.selection()]
-        if indexes is not None:
-            fli = [fli[i] for i in indexes]
-        e = EditView(self.main.root, fli, update=self.update, image_view=SlideShow,
-                full_view=self.slide)
-        self.main.new_view(e)
-
-    def prev_row(self):
-        focused = self.focus()
-        nitem = ''
-        if focused == '':
-            nitem = self.get_children()[0]
-        else:
-            nitem = self.prev(focused)
-        if nitem != '':
-            self.move_focus(nitem)
-
-    def next_row(self):
-        focused = self.focus()
-        nitem = ''
-        if focused == '':
-            nitem = self.get_children()[0]
-        else:
-            nitem = self.next(focused)
-        if nitem != '':
-            self.move_focus(nitem)
-
-    def move_focus(self, nitem):
-        self.focus(nitem)
-        if self.area_select:
-            self.selection_add(nitem)
-        self.see(nitem)
-
-    def load_row(self):
-        f = self.files[self.index]
-        tid = self.insert('', 'end', text=f[self.keys[0]], values=(','.join(f[self.keys[1]]),))
-        self.file_tree_ids[tid] = f
-        self.index += 1
-        if self.index < len(self.files):
-            self.after_idle(self.load_row)
-
-    def update(self):
-        pass
-
 class Main(object):
 
     def __init__(self):
@@ -177,6 +78,9 @@ if __name__ == "__main__":
     gui = Main()
     view = TagView(gui, tags)
     gui.new_view(view.view)
-    gui.new_view(FileView(gui, li, ('name', 'tags')))
+    paths = [os.path.join(d['path'], d['name']) for d in li]
+    gal = Gallery(gui.root, paths, (250,250), 
+            lambda s: gui.new_view(SlideShow(gui.root, [gal.get_path(i) for i in s])))
+    gui.new_view(gal)
     gui.display()
 
