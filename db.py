@@ -203,7 +203,8 @@ class FileDatabase(object):
                 FROM files, paths, file_tags, tags
                 WHERE paths.id = files.path AND file_tags.file_id = files.id AND
                       file_tags.tag_id = tags.id
-                AND files.name LIKE :ss""",
+                AND files.name GLOB :ss
+                GROUP BY files.id""",
                 { "ss":search_string })
         res = list()
         for row in cursor:
