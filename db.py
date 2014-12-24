@@ -16,6 +16,7 @@ import csv
 SEARCH_EXCLUSIVE = 'e'
 SEARCH_INCLUSIVE = 'i'
 
+# CSV dialect used for exporting.
 # using Unit and record separator chars as delimiters
 # -> no collisions
 class ExportDialect(csv.Dialect):
@@ -25,28 +26,6 @@ class ExportDialect(csv.Dialect):
     quoting = csv.QUOTE_NONE
     skipinitialspace = True
     strict = True
-
-class MyDict(dict):
-    def __init__(self, *args, **kwargs):
-        self.sup = super(MyDict, self)
-        self.sup.__init__(*args, **kwargs)
-        self.tags_set = False
-        self.fc_set = False
-
-    def set_get_tags(self, func):
-        self.get_tags = func
-
-    def set_get_fc(self, func):
-        self.get_fc = func
-
-    def __getitem__(self, key):
-        if key == "tags" and not self.tags_set:
-            self.tags_set = True
-            self["tags"] = self.get_tags(self.id)
-        elif key == "fc" and not self.fc_set:
-            self.fc_set = True
-            self["fc"] = self.get_fc(self.id)
-        return self.sup.__getitem__(key)
 
 
 class FileDatabase(object):
@@ -219,15 +198,17 @@ class FileDatabase(object):
         """Returns a list of dictionaries of all files that match search_string.
            search_string  a string with sql wildcards"""
         cursor = self.connection.cursor()
-        cursor.execute("""SELECT files.id AS id, files.name AS name, paths.name AS path, date 
-                FROM files, paths
-                WHERE paths.id = files.path AND files.name LIKE :ss""",
+        cursor.execute("""SELECT files.id AS id, files.name AS name, paths.name AS path, files.date,
+                          group_concat(tags.name) AS tags
+                FROM files, paths, file_tags, tags
+                WHERE paths.id = files.path AND file_tags.file_id = files.id AND
+                      file_tags.tag_id = tags.id
+                AND files.name LIKE :ss""",
                 { "ss":search_string })
         res = list()
         for row in cursor:
-            res.append(MyDict(row))
-            res[-1].set_get_tags(self.get_file_tags(res[-1]["id"]))
-            res[-1].id = res[-1]["id"]
+            res.append(dict(row))
+            res[-1]['tags'] = res[-1]['tags'].split(',')
         return res
 
     def search_by_tags(self, tags, search_type = SEARCH_EXCLUSIVE):
@@ -235,7 +216,8 @@ class FileDatabase(object):
            tags  an iterable with the tag names searched."""
         cursor = self.connection.cursor()
         query = """SELECT files.id AS id, files.name AS name, paths.name AS path,
-            files.date AS date, count(tags.id) AS tags_matched
+                          files.date AS date, group_concat(tags.name) AS tags,
+                          count(tags.id) AS tags_matched
             FROM files, file_tags, tags, paths 
             WHERE tags.id = file_tags.tag_id AND
             files.path = paths.id AND
@@ -247,9 +229,8 @@ class FileDatabase(object):
         res = list()
         for row in cursor:
             if search_type == SEARCH_INCLUSIVE or row["tags_matched"] == len(tags):
-                res.append(MyDict(row))
-                res[-1].set_get_tags(lambda x: self.get_file_tags(x))
-                res[-1].id = res[-1]["id"]
+                res.append(dict(row))
+                res[-1]['tags'] = res[-1]['tags'].split(',')
         return res
 
     def add_tags_to_collection(self, name, tags):
