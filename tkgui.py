@@ -76,11 +76,20 @@ if __name__ == "__main__":
     li = db.search_by_tags(['abstract'])[:100]
     tags = db.list_tags()
     gui = Main()
-    view = TagView(gui, tags)
+    view = TagView(gui, db, tags)
     gui.new_view(view.view)
-    paths = [os.path.join(d['path'], d['name']) for d in li]
-    gal = Gallery(gui.root, paths, (250,250), 
+    def gallery(files):
+        paths = [os.path.join(d['path'], d['name']) for d in files]
+        gal = Gallery(gui.root, paths, (250,250), 
             lambda s: gui.new_view(SlideShow(gui.root, [gal.get_path(i) for i in s])))
-    gui.new_view(gal)
+        return gal
+
+    def search(event):
+        tags = event.widget.selection()
+        files = db.search_by_tags(tags)
+        gui.new_view(gallery(files))
+
+    view.view.bind('<<TreeviewSelect>>', search)
+    gui.new_view(gallery(li))
     gui.display()
 
