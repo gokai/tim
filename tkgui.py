@@ -90,7 +90,7 @@ if __name__ == "__main__":
         files = db.search_by_tags(tags)
         gui.new_view(gallery(files))
 
-    view.view.bind('<<TreeviewSelect>>', search)
+    view.view.bind('<<TagViewSearch>>', search)
     gui.new_view(gallery(li))
     gui.display()
 
