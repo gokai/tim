@@ -91,7 +91,7 @@ class Gallery(Canvas):
         self.thumb_w = thumb_size[0]
         self.thumb_h = thumb_size[1]
         self.photos = list()
-        self.selection = list()
+        self.selection = set()
         super(Gallery, self).__init__(root)
         self.make_view()
         self.make_bindings()
@@ -125,7 +125,7 @@ class Gallery(Canvas):
         self.after(100, self.load_next)
 
     def activate(self, e):
-        self.activate_func(self.selection)
+        self.activate_func(list(self.selection))
         self.focus_set()
 
     def get_path(self, item_id):
@@ -254,7 +254,7 @@ class Gallery(Canvas):
         self.cursor = (column, row, index or row*self.max_columns + column)
         self.addtag_withtag('selected', item.cid)
         self.view_item(item)
-        self.selection.append(item.index)
+        self.selection.add(item.index)
 
     def remove_cursor(self, item, state):
         # control key was down -> selection
