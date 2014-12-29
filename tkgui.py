@@ -34,22 +34,23 @@ class Main(object):
         self.paned_win.grid(row=0, column=0, sticky=(N, S, W, E))
         self._root = root
 
+    def sidebar(self, widget):
+        self.sidebar = widget
+        self.paned_win.add(widget, weight=1)
+
     def new_view(self, view):
         self.views.append(view)
-        if len(self.views) > 2:
+        if len(self.views) > 1:
             self.paned_win.forget(self.views[self.cur_view])
         self.cur_view = len(self.views) - 1
-        if len(self.views) == 1:
-            self.paned_win.add(view, weight=1)
-        else:
-            self.paned_win.add(view, weight=5)
+        self.paned_win.add(view, weight=5)
 
         view.focus_set()
 
     def remove_view(self, view):
         self.views.remove(view)
         self.paned_win.forget(view)
-        if len(self.views) >= 2:
+        if len(self.views) >= 1:
             self.views[-1].focus_set()
             self.cur_view -= 1
             self.paned_win.add(self.views[self.cur_view], weight=5)
@@ -77,7 +78,7 @@ if __name__ == "__main__":
     tags = db.list_tags()
     gui = Main()
     view = TagView(gui, db, tags)
-    gui.new_view(view.view)
+    gui.sidebar(view.view)
     def gallery(files):
         paths = [os.path.join(d['path'], d['name']) for d in files]
         gal = Gallery(gui.root, paths, (250,250), 
