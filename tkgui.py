@@ -83,12 +83,20 @@ if __name__ == "__main__":
         paths = [os.path.join(d['path'], d['name']) for d in files]
         gal = Gallery(gui.root, paths, (250,250), 
             lambda s: gui.new_view(SlideShow(gui.root, [gal.get_path(i) for i in s])))
+        gal.bind('<Control-a>', add_tags)
         return gal
 
     def search(event):
         tags = event.widget.selection()
         files = db.search_by_tags(tags)
         gui.new_view(gallery(files))
+
+    def add_tags(event):
+        gal_ids = event.widget.selection
+        paths = [event.widget.get_path(i) for i in gal_ids]
+        db_ids = db.get_file_ids(paths)
+        for path in db_ids:
+            db.add_tags_to_file(db_ids[path], view.view.selection())
 
     view.view.bind('<<TagViewSearch>>', search)
     gui.new_view(gallery(li))
