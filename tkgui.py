@@ -7,9 +7,11 @@ from tkinter import *
 from tkinter.ttk import *
 
 from db import FileDatabase
-from tkgraphics import SlideShow, Gallery
+from tkgraphics import gallery_with_slideshow
 from tkeditview import EditView
 from tagview import TagView
+from gui2db import Gui2Db
+
 import keybindings as kb
 
 class Main(object):
@@ -74,31 +76,21 @@ class Main(object):
 
 if __name__ == "__main__":
     db = FileDatabase('master.sqlite')
-    li = db.search_by_tags(['abstract'])[:100]
-    tags = db.list_tags()
     gui = Main()
+
+    li = db.search_by_tags(['abstract'])[:100]
+
+    glue = Gui2Db(db, gui)
+
+    tags = db.list_tags()
     view = TagView(gui, db, tags)
+    view.view.bind('<<TagViewSearch>>', glue.search)
+
+    paths = [os.path.join(d['path'], d['name']) for d in li]
+    gal = gallery_with_slideshow(gui.root, paths, gui.new_view)
+    gal.bind('<Control-a>', lambda e: glue.add_tags(e, view))
+
     gui.sidebar(view.view)
-    def gallery(files):
-        paths = [os.path.join(d['path'], d['name']) for d in files]
-        gal = Gallery(gui.root, paths, (250,250), 
-            lambda s: gui.new_view(SlideShow(gui.root, [gal.get_path(i) for i in s])))
-        gal.bind('<Control-a>', add_tags)
-        return gal
-
-    def search(event):
-        tags = event.widget.selection()
-        files = db.search_by_tags(tags)
-        gui.new_view(gallery(files))
-
-    def add_tags(event):
-        gal_ids = event.widget.selection
-        paths = [event.widget.get_path(i) for i in gal_ids]
-        db_ids = db.get_file_ids(paths)
-        for path in db_ids:
-            db.add_tags_to_file(db_ids[path], view.view.selection())
-
-    view.view.bind('<<TagViewSearch>>', search)
-    gui.new_view(gallery(li))
+    gui.new_view(gal)
     gui.display()
 

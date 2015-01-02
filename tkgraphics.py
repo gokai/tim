@@ -19,6 +19,12 @@ import keybindings as kb
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
+def gallery_with_slideshow(root, paths, new_view):
+    gal = Gallery(root, paths, (250,250), 
+        lambda s: new_view(SlideShow(root, [gal.get_path(i) for i in s])))
+    return gal
+
+
 class SlideShow(Label):
 
     def __init__(self, root, paths, pos=0):
