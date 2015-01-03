@@ -3,8 +3,8 @@ import os
 import subprocess
 import mimetypes
 
-from tkinter import *
-from tkinter.ttk import *
+from tkinter import Tk, Menu, N, S, W, E, HORIZONTAL
+from tkinter.ttk import PanedWindow, Entry
 
 from db import FileDatabase
 from tkgraphics import gallery_with_slideshow
