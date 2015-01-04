@@ -3,7 +3,7 @@ import os
 import subprocess
 import mimetypes
 
-from tkinter import Tk, Menu, N, S, W, E, HORIZONTAL, Toplevel
+from tkinter import Tk, Menu, N, S, W, E, HORIZONTAL, Toplevel, StringVar
 from tkinter.ttk import PanedWindow, Entry, Label, Frame, Button
 
 from db import FileDatabase
@@ -33,10 +33,12 @@ class Main(object):
         self.cur_view = 0
         self.delete_current_view = lambda e: self.remove_view(self.views[self.cur_view]) 
         kb.make_bindings(kb.appwide,{'quit':lambda e: self.quit(),
-            'next_view':lambda e: self.next_view(), 'delete_view': self.delete_current_view},
+            'next_view':lambda e: self.next_view(), 'delete_view': self.delete_current_view,
+            'accept_query':lambda e: self.accept_query()},
             self.root.bind_all)
         self.paned_win.grid(row=1, column=0, sticky=(N, S, W, E))
         self._root = root
+        self._query = None
 
     def sidebar(self, widget):
         self.sidebar = widget
@@ -70,6 +72,25 @@ class Main(object):
         self.paned_win.add(new_view, weight=5)
         new_view.focus_set()
 
+    def close_query(self):
+        if self._query is not None:
+            self._query.event_generate('<<MainQueryClose>>')
+            self._query.destroy()
+            self._query = None
+
+    def text_query(self, query_lable):
+        frame = Frame(self.menubar)
+        label = Label(frame, text=query_lable)
+        label.grid(column=0, row=0, sticky=(N, S))
+
+        text_var = StringVar()
+        entry = Entry(frame, textvariable=text_var)
+        entry.grid(column=1, row=0, sticky=(N,S,W,E))
+
+        frame.grid(column=1, row=0)
+        entry.focus_set()
+        self._query = frame
+
     def display(self):
         self._root.mainloop()
 
@@ -92,6 +113,7 @@ if __name__ == "__main__":
     gal = gallery_with_slideshow(gui.root, paths, gui.new_view)
     gal.bind('<Control-a>', lambda e: glue.add_tags(e, view))
 
+    gui.root.bind_all('<Control-l>', lambda e: gui.text_query('Add tags: '))
     gui.sidebar(view.view)
     gui.new_view(gal)
     gui.display()
