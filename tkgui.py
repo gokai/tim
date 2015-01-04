@@ -3,8 +3,8 @@ import os
 import subprocess
 import mimetypes
 
-from tkinter import Tk, Menu, N, S, W, E, HORIZONTAL
-from tkinter.ttk import PanedWindow, Entry
+from tkinter import Tk, Menu, N, S, W, E, HORIZONTAL, Toplevel
+from tkinter.ttk import PanedWindow, Entry, Label, Frame, Button
 
 from db import FileDatabase
 from tkgraphics import gallery_with_slideshow
@@ -22,18 +22,20 @@ class Main(object):
         self.root = self.paned_win
         root.title('GICM')
         root.focus_set()
-        root.rowconfigure(0, weight=1)
+        root.rowconfigure(0, weight=0)
         root.columnconfigure(0, weight=1)
-        self.menubar = Menu(self.root)
-        root['menu'] = self.menubar
-        self.menubar.add_command(command=self.quit, label='Quit')
+        root.rowconfigure(1, weight=1)
+        self.menubar = Frame(root)
+        self.menubar.grid(row=0, column=0, sticky=(W, E))
+        quit_button = Button(self.menubar, text='Quit', command=self.quit)
+        quit_button.grid(row=0, column=0)
         self.views = list()
         self.cur_view = 0
         self.delete_current_view = lambda e: self.remove_view(self.views[self.cur_view]) 
         kb.make_bindings(kb.appwide,{'quit':lambda e: self.quit(),
             'next_view':lambda e: self.next_view(), 'delete_view': self.delete_current_view},
             self.root.bind_all)
-        self.paned_win.grid(row=0, column=0, sticky=(N, S, W, E))
+        self.paned_win.grid(row=1, column=0, sticky=(N, S, W, E))
         self._root = root
 
     def sidebar(self, widget):
