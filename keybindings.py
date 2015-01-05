@@ -55,6 +55,12 @@ appwide = {
         '<Control-d>':'delete_view'
 }
 
+# Bindings for text entries
+text_query = {
+        '<Return>':'accept',
+        '<Escape>':'cancel'
+}
+
 
 def make_bindings(bindings, actions, bind_func):
     """Creates bindings defined in bindings with bind_func.

@@ -40,9 +40,9 @@ class Main(object):
         self._root = root
         self._query = None
 
-    def sidebar(self, widget):
-        self.sidebar = widget
-        self.paned_win.add(widget, weight=1)
+    def sidebar(self, view):
+        self.sidebar = view
+        self.paned_win.add(self.sidebar.widget, weight=1)
 
     def new_view(self, view):
         self.views.append(view)
@@ -86,6 +86,9 @@ class Main(object):
         text_var = StringVar()
         entry = Entry(frame, textvariable=text_var)
         entry.grid(column=1, row=0, sticky=(N,S,W,E))
+        kb.make_bindings(kb.text_query, 
+                {'accept': lambda e: entry.event_generate('<<MainQueryAccept>>'),
+                 'cancel': lambda e: self.close_query()}, entry.bind)
 
         frame.grid(column=1, row=0)
         entry.focus_set()
@@ -107,14 +110,15 @@ if __name__ == "__main__":
 
     tags = db.list_tags()
     view = TagView(gui, db, tags)
-    view.view.bind('<<TagViewSearch>>', glue.search)
+    view.widget.bind('<<TagViewSearch>>', glue.search)
 
     paths = [os.path.join(d['path'], d['name']) for d in li]
     gal = gallery_with_slideshow(gui.root, paths, gui.new_view)
     gal.bind('<Control-a>', lambda e: glue.add_tags(e, view))
 
-    gui.root.bind_all('<Control-l>', lambda e: gui.text_query('Add tags: '))
-    gui.sidebar(view.view)
+    gui.root.bind_all('<Control-i>', lambda e: gui.text_query('Add tags: '))
+    gui.root.bind_all('<<MainQueryAccept>>', glue.add_tags_from_entry)
+    gui.sidebar(view)
     gui.new_view(gal)
     gui.display()
 
