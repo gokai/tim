@@ -40,37 +40,37 @@ class Main(object):
         self._root = root
         self._query = None
 
-    def sidebar(self, view):
+    def add_sidebar(self, view):
         self.sidebar = view
         self.paned_win.add(self.sidebar.widget, weight=1)
 
     def new_view(self, view):
         self.views.append(view)
         if len(self.views) > 1:
-            self.paned_win.forget(self.views[self.cur_view])
+            self.paned_win.forget(self.views[self.cur_view].widget)
         self.cur_view = len(self.views) - 1
-        self.paned_win.add(view, weight=5)
+        self.paned_win.add(view.widget, weight=5)
 
-        view.focus_set()
+        view.widget.focus_set()
 
     def remove_view(self, view):
         self.views.remove(view)
-        self.paned_win.forget(view)
+        self.paned_win.forget(view.widget)
         if len(self.views) >= 1:
-            self.views[-1].focus_set()
+            self.views[-1].widget.focus_set()
             self.cur_view -= 1
-            self.paned_win.add(self.views[self.cur_view], weight=5)
+            self.paned_win.add(self.views[self.cur_view].widget, weight=5)
         else:
             self.quit()
 
     def next_view(self):
-        self.paned_win.forget(self.views[self.cur_view])
+        self.paned_win.forget(self.views[self.cur_view].widget)
         self.cur_view += 1
         if self.cur_view >= len(self.views):
             self.cur_view = 1
         new_view = self.views[self.cur_view]
-        self.paned_win.add(new_view, weight=5)
-        new_view.focus_set()
+        self.paned_win.add(new_view.widget, weight=5)
+        new_view.widget.focus_set()
 
     def close_query(self):
         if self._query is not None:
@@ -114,11 +114,11 @@ if __name__ == "__main__":
 
     paths = [os.path.join(d['path'], d['name']) for d in li]
     gal = gallery_with_slideshow(gui.root, paths, gui.new_view)
-    gal.bind('<Control-a>', lambda e: glue.add_tags(e, view))
+    gal.widget.bind('<Control-a>', lambda e: glue.add_tags(e, view))
 
     gui.root.bind_all('<Control-i>', lambda e: gui.text_query('Add tags: '))
     gui.root.bind_all('<<MainQueryAccept>>', glue.add_tags_from_entry)
-    gui.sidebar(view)
+    gui.add_sidebar(view)
     gui.new_view(gal)
     gui.display()
 

@@ -25,19 +25,19 @@ def gallery_with_slideshow(root, paths, new_view):
     return gal
 
 
-class SlideShow(Label):
+class SlideShow(object):
 
     def __init__(self, root, paths, pos=0):
         self.paths = paths
         self.img = paths[pos]
         self.pos = pos
-        super(SlideShow, self).__init__(root)
+        self.widget = Label(root)
         self.root = root
         self.make_view()
-        self.bind('<Expose>', lambda e: self.reload())
+        self.widget.bind('<Expose>', lambda e: self.reload())
         actions = {'next':lambda e: self.next(), 'prev':lambda e: self.prev(),
                 'reload':lambda e: self.reload()}
-        kb.make_bindings(kb.slideshow, actions, self.bind)
+        kb.make_bindings(kb.slideshow, actions, self.widget.bind)
 
     def reload(self):
         w = self.root.winfo_width()
@@ -50,14 +50,14 @@ class SlideShow(Label):
             img = self._pil_image.copy()
             resize(img, h, w)
             self.photo = PhotoImage(img)
-            self['image'] = self.photo
+            self.widget['image'] = self.photo
 
     def make_view(self):
         self._tid = None
         self._pil_image = None
         self.prev_w = 0
         self.prev_h = 0
-        self['anchor'] = CENTER
+        self.widget['anchor'] = CENTER
         self.reload()
 
     def next(self):
@@ -68,7 +68,7 @@ class SlideShow(Label):
         self._pil_image = None
         self.reload()
         if self._tid is not None:
-            self._tid = self.after(self.delay, self.next())
+            self._tid = self.widget.after(self.delay, self.next())
 
     def prev(self):
         self.pos -= 1
@@ -78,18 +78,18 @@ class SlideShow(Label):
         self._pil_image = None
         self.reload()
         if self._tid is not None:
-            self._tid = self.after(self.delay, self.next)
+            self._tid = self.widget.after(self.delay, self.next)
 
     def start(self, delay):
         self.delay = delay*1000
-        self._tid = self.after(self.delay, self.next)
+        self._tid = self.widget.after(self.delay, self.next)
 
     def stop(self):
-        self.after_cancel(self._tid)
+        self.widget.after_cancel(self._tid)
 
 
     
-class Gallery(Canvas):
+class Gallery(object):
 
     def __init__(self, root, paths, thumb_size, activate_func):
         """thumb_size = (w, h)"""
@@ -98,47 +98,47 @@ class Gallery(Canvas):
         self.thumb_h = thumb_size[1]
         self.photos = list()
         self.selection = set()
-        super(Gallery, self).__init__(root)
+        self.widget = Canvas(root)
         self.make_view()
         self.make_bindings()
         self.activate_func = activate_func
-        self.configure(takefocus=1)
+        self.widget.configure(takefocus=1)
 
     def make_bindings(self):
-        self.bind('<Expose>', lambda e: self.reload())
+        self.widget.bind('<Expose>', lambda e: self.reload())
         actions = {'slide': self.activate,
                 'clear_selection': lambda e: self.clear_selection(),
                 'cursor_up':self.cursor_up,
                 'cursor_right':self.cursor_right,
                 'cursor_left':self.cursor_left,
                 'cursor_down':self.cursor_down,}
-        self.bind('<Button-4>', self.scroll)
-        self.bind('<Button-5>', self.scroll)
-        kb.make_bindings(kb.gallery, actions, self.bind)
+        self.widget.bind('<Button-4>', self.scroll)
+        self.widget.bind('<Button-5>', self.scroll)
+        kb.make_bindings(kb.gallery, actions, self.widget.bind)
 
     def make_view(self):
         self.style = Style()
         self.style.configure('Gallery.TLabel', padding=3)
         self.style.configure('Cursor.Gallery.TLabel', background='red')
         self.style.configure('Selected.Gallery.TLabel', background='blue')
-        self['confine'] = True
-        self.prev_w = self.winfo_width()
+        self.widget['confine'] = True
+        self.prev_w = self.widget.winfo_width()
         self.load_pos = 0
         self.row = 0
         self.column = 0
         self.cursor = (0, 0, -1)
         self.max_columns = self.calculate_max_columns()
-        self.after(100, self.load_next)
+        self.widget.after(100, self.load_next)
 
     def activate(self, e):
         self.activate_func(list(self.selection))
-        self.focus_set()
+        self.widget.focus_set()
 
     def get_path(self, item_id):
         return self.paths[item_id]
 
     def clear_selection(self):
-        self.dtag('selected', 'selected')
+        self.widget.dtag('selected', 'selected')
         for index in self.selection:
             self.set_state(self.photos[index], 'normal')
         self.selection.clear()
@@ -150,29 +150,30 @@ class Gallery(Canvas):
 
     def scroll(self, event):
         if event.num == 4:
-            self.yview(SCROLL, -1, UNITS)
+            self.widget.yview(SCROLL, -1, UNITS)
         elif event.num == 5:
-            self.yview(SCROLL, 1, UNITS)
+            self.widget.yview(SCROLL, 1, UNITS)
 
     def reload(self):
-        w = self.winfo_width()
+        w = self.widget.winfo_width()
         if w != self.prev_w:
             self.prev_w = w
             self.max_columns = self.calculate_max_columns()
             self.repos = 0
             self.repos_col = 0
             self.repos_row = 0
-            self.after_idle(self.reposition_next)
+            self.widget.after_idle(self.reposition_next)
 
     def reposition_next(self):
         if len(self.photos) > 0:
             photo = self.photos[self.repos]
             new_x, new_y = self.calculate_pos(self.repos_col, self.repos_row)
-            self.coords(photo.cid, new_x, new_y)
+            self.widget.coords(photo.cid, new_x, new_y)
             if self.repos == self.cursor[2]:
                 self.cursor = (self.repos_col, self.repos_row, self.repos)
             col, row = self.repos_col, self.repos_row
-            self.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
+            self.widget.tag_bind(photo.cid, '<Button-1>',
+                    lambda e: self.button_callback(e, photo, col, row))
             self.repos_col += 1
 
         if self.repos_col >= self.max_columns:
@@ -180,10 +181,10 @@ class Gallery(Canvas):
             self.repos_col = 0
         if self.repos < len(self.photos) - 1:
             self.repos += 1
-            self.after_idle(self.reposition_next)
+            self.widget.after_idle(self.reposition_next)
 
     def calculate_max_columns(self):
-        w = self.winfo_width()
+        w = self.widget.winfo_width()
         return floor(w/(self.thumb_w + 8))
 
     def calculate_pos(self, column, row):
@@ -199,11 +200,11 @@ class Gallery(Canvas):
             col, row = self.column, self.row
             self.photos.append(photo)
             x, y = self.calculate_pos(self.column, self.row)
-            photo.cid = self.create_image(x, y, image=photo)
+            photo.cid = self.widget.create_image(x, y, image=photo)
             photo.index = self.load_pos
-            self.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
-            self.tag_bind(photo.cid, '<Double-Button-1>', self.activate)
-            self.addtag_withtag(photo.cid, 'photo')
+            self.widget.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
+            self.widget.tag_bind(photo.cid, '<Double-Button-1>', self.activate)
+            self.widget.addtag_withtag(photo.cid, 'photo')
             self.column += 1
         except OSError:
             print(self.paths[self.load_pos])
@@ -213,8 +214,8 @@ class Gallery(Canvas):
             self.column = 0
         if self.load_pos < len(self.paths) - 1:
             self.load_pos += 1
-            self.after_idle(self.load_next)
-        self['scrollregion'] = self.bbox('all')
+            self.widget.after_idle(self.load_next)
+        self.widget['scrollregion'] = self.widget.bbox('all')
 
     def cursor_up(self, e):
         column = self.cursor[0]
@@ -258,7 +259,7 @@ class Gallery(Canvas):
     def set_cursor(self, item, column, row, index=None):
         self.set_state(item, 'active')
         self.cursor = (column, row, index or row*self.max_columns + column)
-        self.addtag_withtag('selected', item.cid)
+        self.widget.addtag_withtag('selected', item.cid)
         self.view_item(item)
         self.selection.add(item.index)
 
@@ -267,10 +268,10 @@ class Gallery(Canvas):
         if state & 0x0004:
             self.set_state(item, 'selected')
         else:
-            if 'selected' in self.gettags(item.cid) and item.index in self.selection:
+            if 'selected' in self.widget.gettags(item.cid) and item.index in self.selection:
                 self.selection.remove(item.index)
             self.set_state(item, 'normal')
-            self.dtag(item.cid, 'selected')
+            self.widget.dtag(item.cid, 'selected')
 
     def set_state(self, item, state):
         color = ''
@@ -281,20 +282,20 @@ class Gallery(Canvas):
 
         old_rect = getattr(item, 'rectangle_id', '')
         if old_rect != '':
-            self.delete(old_rect)
-        bbox = self.bbox(item.cid)
-        item.rectangle_id = self.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], outline=color, width=8)
-        self.tag_lower(item.rectangle_id, item.cid)
+            self.widget.delete(old_rect)
+        bbox = self.widget.bbox(item.cid)
+        item.rectangle_id = self.widget.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], outline=color, width=8)
+        self.widget.tag_lower(item.rectangle_id, item.cid)
 
     def view_item(self, item):
-        bbox = self.bbox(item.cid)
-        max_y = self.bbox('all')[3]
-        max_visible_y = self.canvasy(self.winfo_height())
-        min_visible_y = self.canvasy(0)
+        bbox = self.widget.bbox(item.cid)
+        max_y = self.widget.bbox('all')[3]
+        max_visible_y = self.widget.canvasy(self.widget.winfo_height())
+        min_visible_y = self.widget.canvasy(0)
         top = bbox[1]
         bottom = bbox[3]
         if bottom > max_visible_y or top < min_visible_y:
-            self.yview_moveto((top + 1) / max_y)
+            self.widget.yview_moveto((top + 1) / max_y)
 
 
 
@@ -311,23 +312,23 @@ if __name__ == "__main__":
     tk.columnconfigure(0, weight=1)
     if sys.argv[1] == 'slide':
         ss = SlideShow(tk, li)
-        ss.focus_set()
-        ss.grid(column=0, row=0, sticky=(N, W, E, S))
+        ss.widget.focus_set()
+        ss.widget.grid(column=0, row=0, sticky=(N, W, E, S))
     elif sys.argv[1] == 'gallery':
         g = Gallery(tk, li, (180,180), lambda l: show(l))
         def show(li):
             ss = SlideShow(tk, [g.get_path(i) for i in li])
-            ss.focus_set()
-            ss.winfo_width = g.winfo_width
-            ss.winfo_height = g.winfo_height
-            ss.grid(column=0, row=0)
-            ss.bind('<q>', lambda e: ss.destroy())
-            ss.bind('<Destroy>', lambda e: g.focus_set())
+            ss.widget.focus_set()
+            ss.widget.winfo_width = g.widget.winfo_width
+            ss.widget.winfo_height = g.widget.winfo_height
+            ss.widget.grid(column=0, row=0)
+            ss.widget.bind('<q>', lambda e: ss.destroy())
+            ss.widget.bind('<Destroy>', lambda e: g.focus_set())
 
-        g.grid(column=0, row=0, sticky=(N, W, E, S))
-        g.focus_set()
+        g.widget.grid(column=0, row=0, sticky=(N, W, E, S))
+        g.widget.focus_set()
         sb = Scrollbar(tk, command = g.yview)
-        g['yscrollcommand'] = sb.set
+        g.widget['yscrollcommand'] = sb.set
         sb.grid(column=1, row=0, sticky=(N,S))
     tk.mainloop()
 
