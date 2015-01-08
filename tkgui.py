@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     paths = [os.path.join(d['path'], d['name']) for d in li]
     gal = gallery_with_slideshow(gui.root, paths, gui.new_view)
-    gal.widget.bind('<Control-a>', lambda e: glue.add_tags(e, view))
+    gal.widget.bind('<Control-a>', lambda e: glue.add_tags_from_tagview(e, view))
 
     gui.root.bind_all('<Control-i>', lambda e: gui.text_query('Add tags: '))
     gui.root.bind_all('<<MainQueryAccept>>', glue.add_tags_from_entry)
