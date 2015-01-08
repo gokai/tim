@@ -1,6 +1,7 @@
 import os
+from mimetypes import guess_type
 
-from tkinter.filedialog import askopenfilenames
+from tkinter.filedialog import askopenfilenames, askdirectory
 from tkinter.messagebox import askyesno
 from tkinter.simpledialog import askstring
 
@@ -52,23 +53,38 @@ class Gui2Db(object):
         else:
             self.add_tags_from_entry(event)
 
-    def add_files(self, event):
-        filenames = askopenfilenames()
-        fileinfos = list()
+    def query_tags(self):
         selected_tags = self.main.sidebar.widget.selection()
         new_tags = list()
         add_sel_tags = False
         tag_string = askstring('New tags?', 'Give tags to new files:')
-        tag_list = tag_string.split(',')
         if len(selected_tags) > 0:
            if askyesno('Add selected tags?', 
                     'Do you want to add selected tags to added files?'):
                 tag_list.extend(selected_tags)
+        return tag_string.split(',')
+
+    def add_files(self, event):
+        filenames = askopenfilenames()
+        fileinfos = list()
+        tag_list = self.query_tags()
         for name in filenames:
             if os.path.isdir(name):
                 continue
             else:
                 fileinfos.append({'name':name, 'tags':tag_list})
+        self.db.add_files(fileinfos)
+        self.main.sidebar.append_tags(tag_list)
+
+    def add_directory(self, event):
+        directory = askdirectory()
+        fileinfos = list()
+        tag_list = self.query_tags()
+        for name in os.listdir(directory):
+            path = os.path.join(directory, name)
+            f_type = guess_type(path)
+            if not os.path.isdir(path) and f_type[0] is not None and 'image' in f_type[0]:
+                fileinfos.append({'name':path, 'tags':tag_list})
         self.db.add_files(fileinfos)
         self.main.sidebar.append_tags(tag_list)
 
