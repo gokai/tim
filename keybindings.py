@@ -55,6 +55,12 @@ appwide = {
         '<Control-d>':'delete_view'
 }
 
+# Bindings for the tagview on the sidebar
+tagview = {
+        'e':'edit',
+        's':'search'
+}
+
 # Bindings for text entries
 text_query = {
         '<Return>':'accept',
