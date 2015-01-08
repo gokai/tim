@@ -308,6 +308,13 @@ class FileDatabase(object):
             tags.append(row[0])
         return tags
 
+    def rename_tags(self, tag_pairs):
+        """Renames tags given in tag_pairs with values from tag_pairs.
+         tag_pairs    an iterable of (old_name, new_name) pairs."""
+        cursor = self.connection.cursor()
+        cursor.executemany("""UPDATE tags SET name=?2 WHERE name=?1""", 
+                (pair for pair in tag_pairs))
+
     def export_collection(self, collection):
         """Creates an archive with all files and metadata of a collection.
            The achive is a gzipped tar containing the metadata file and 
