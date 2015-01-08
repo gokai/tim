@@ -103,7 +103,7 @@ class Main(object):
         self._root.destroy()
 
 if __name__ == "__main__":
-    db = FileDatabase('master.sqlite')
+    db = FileDatabase('experiment.sqlite')
     gui = Main()
 
     li = db.search_by_tags(['abstract'])[:100]
@@ -122,6 +122,7 @@ if __name__ == "__main__":
 
     gui.root.bind_all('<Control-i>', lambda e: gui.text_query('Add tags: '))
     gui.root.bind_all('<<MainQueryAccept>>', glue.add_or_rename_tags)
+    gui.root.bind_all('<Control-o>', glue.add_files)
     gui.add_sidebar(view)
     gui.new_view(gal)
     gui.display()

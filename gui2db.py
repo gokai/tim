@@ -1,4 +1,9 @@
 import os
+
+from tkinter.filedialog import askopenfilenames
+from tkinter.messagebox import askyesno
+from tkinter.simpledialog import askstring
+
 from tkgraphics import gallery_with_slideshow
 
 class Gui2Db(object):
@@ -47,5 +52,23 @@ class Gui2Db(object):
         else:
             self.add_tags_from_entry(event)
 
-
+    def add_files(self, event):
+        filenames = askopenfilenames()
+        fileinfos = list()
+        selected_tags = self.main.sidebar.widget.selection()
+        new_tags = list()
+        add_sel_tags = False
+        tag_string = askstring('New tags?', 'Give tags to new files:')
+        tag_list = tag_string.split(',')
+        if len(selected_tags) > 0:
+           if askyesno('Add selected tags?', 
+                    'Do you want to add selected tags to added files?'):
+                tag_list.extend(selected_tags)
+        for name in filenames:
+            if os.path.isdir(name):
+                continue
+            else:
+                fileinfos.append({'name':name, 'tags':tag_list})
+        self.db.add_files(fileinfos)
+        self.main.sidebar.append_tags(tag_list)
 
