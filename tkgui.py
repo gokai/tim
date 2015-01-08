@@ -78,13 +78,15 @@ class Main(object):
             self._query.destroy()
             self._query = None
 
-    def text_query(self, query_lable):
+    def text_query(self, query_lable, original_text=None):
         frame = Frame(self.menubar)
         label = Label(frame, text=query_lable)
         label.grid(column=0, row=0, sticky=(N, S))
 
-        text_var = StringVar()
-        entry = Entry(frame, textvariable=text_var)
+        entry = Entry(frame)
+        if original_text is not None:
+            entry.insert(0, original_text)
+        entry.original_value = original_text
         entry.grid(column=1, row=0, sticky=(N,S,W,E))
         kb.make_bindings(kb.text_query, 
                 {'accept': lambda e: entry.event_generate('<<MainQueryAccept>>'),
@@ -111,13 +113,15 @@ if __name__ == "__main__":
     tags = db.list_tags()
     view = TagView(gui, db, tags)
     view.widget.bind('<<TagViewSearch>>', glue.search)
+    view.widget.bind('<<TagViewEdit>>',
+            lambda e: gui.text_query('Edit tag: ', e.widget.selection()[0]))
 
     paths = [os.path.join(d['path'], d['name']) for d in li]
     gal = gallery_with_slideshow(gui.root, paths, gui.new_view)
-    gal.widget.bind('<Control-a>', lambda e: glue.add_tags(e, view))
+    gal.widget.bind('<Control-a>', lambda e: glue.add_tags_from_tagview(e, view))
 
     gui.root.bind_all('<Control-i>', lambda e: gui.text_query('Add tags: '))
-    gui.root.bind_all('<<MainQueryAccept>>', glue.add_tags_from_entry)
+    gui.root.bind_all('<<MainQueryAccept>>', glue.add_or_rename_tags)
     gui.add_sidebar(view)
     gui.new_view(gal)
     gui.display()

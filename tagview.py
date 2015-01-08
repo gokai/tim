@@ -16,15 +16,12 @@ class TagView(object):
         actions = {'edit': lambda e: self.edit(),
                 'search': lambda e: self.search()
                 }
-        #TODO: keybindings
-        #kb.make_bindings(kb.tagview, actions, self.view.bind)
-        self.widget.bind('e', self.edit)
-        self.widget.bind('<Double-1>', lambda e: self.search())
+        kb.make_bindings(kb.tagview, actions, self.widget.bind)
         for tag in sorted(tags):
             self.widget.insert('', 'end', iid=tag, text=tag)
 
-    def edit(self, s):
-        self.widget.event_generate('<<TagsChanged>>')
+    def edit(self):
+        self.widget.event_generate('<<TagViewEdit>>')
 
     def search(self):
         self.widget.event_generate('<<TagViewSearch>>')

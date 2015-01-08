@@ -15,7 +15,7 @@ class Gui2Db(object):
     def add_tags_from_tagview(self, event, tagview):
         db_ids = self.ids_from_gallery(event.widget)
         for id_key in db_ids:
-            self.db.add_tags_to_file(db_ids[id_key], tagview.selection())
+            self.db.add_tags_to_file(db_ids[id_key], tagview.widget.selection())
 
     def add_tags_from_entry(self, event):
         entry = event.widget
@@ -31,6 +31,21 @@ class Gui2Db(object):
         gal_ids = gallery.selection
         paths = [gallery.get_path(i) for i in gal_ids]
         return self.db.get_file_ids(paths)
+
+    def rename_tag(self, event):
+        entry = event.widget
+        new_name = entry.get()
+        old_name = entry.original_value
+        self.db.rename_tags(((old_name, new_name), ))
+        self.main.close_query()
+        self.main.sidebar.widget.delete(old_name)
+        self.main.sidebar.append_tags((new_name, ))
+
+    def add_or_rename_tags(self, event):
+        if event.widget.original_value is not None:
+            self.rename_tag(event)
+        else:
+            self.add_tags_from_entry(event)
 
 
 
