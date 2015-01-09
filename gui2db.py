@@ -42,7 +42,10 @@ class Gui2Db(object):
         entry = event.widget
         new_name = entry.get()
         old_name = entry.original_value
-        self.db.rename_tags(((old_name, new_name), ))
+        if new_name in self.db.list_tags():
+            self.db.join_tags(new_name, old_name)
+        else:
+            self.db.rename_tags(((old_name, new_name), ))
         self.main.close_query()
         self.main.sidebar.widget.delete(old_name)
         self.main.sidebar.append_tags((new_name, ))
