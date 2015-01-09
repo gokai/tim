@@ -114,6 +114,7 @@ class Gallery(object):
                 'cursor_down':self.cursor_down,}
         self.widget.bind('<Button-4>', self.scroll)
         self.widget.bind('<Button-5>', self.scroll)
+        self.widget.bind('<MouseWheel>', self.scroll)
         kb.make_bindings(kb.gallery, actions, self.widget.bind)
 
     def make_view(self):
@@ -149,9 +150,9 @@ class Gallery(object):
         self.set_cursor(item, column, row)
 
     def scroll(self, event):
-        if event.num == 4:
+        if event.num == 4 or event.delta > 0:
             self.widget.yview(SCROLL, -1, UNITS)
-        elif event.num == 5:
+        elif event.num == 5 or event.delta < 0:
             self.widget.yview(SCROLL, 1, UNITS)
 
     def reload(self):
