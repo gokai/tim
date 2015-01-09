@@ -8,7 +8,6 @@ from tkinter.ttk import PanedWindow, Entry, Label, Frame, Button
 
 from db import FileDatabase
 from tkgraphics import gallery_with_slideshow
-from tkeditview import EditView
 from tagview import TagView
 from gui2db import Gui2Db
 
@@ -32,10 +31,6 @@ class Main(object):
         self.views = list()
         self.cur_view = 0
         self.delete_current_view = lambda e: self.remove_view(self.views[self.cur_view]) 
-        kb.make_bindings(kb.appwide,{'quit':lambda e: self.quit(),
-            'next_view':lambda e: self.next_view(), 'delete_view': self.delete_current_view,
-            'accept_query':lambda e: self.accept_query()},
-            self.root.bind_all)
         self.paned_win.grid(row=1, column=0, sticky=(N, S, W, E))
         self._root = root
         self._query = None
@@ -61,7 +56,7 @@ class Main(object):
             self.cur_view -= 1
             self.paned_win.add(self.views[self.cur_view].widget, weight=5)
         else:
-            self.quit()
+            self.sidebar.widget.focus_set()
 
     def next_view(self):
         self.paned_win.forget(self.views[self.cur_view].widget)
@@ -103,7 +98,7 @@ class Main(object):
         self._root.destroy()
 
 if __name__ == "__main__":
-    db = FileDatabase('experiment.sqlite')
+    db = FileDatabase('winexperiment.sqlite')
     gui = Main()
 
     li = db.search_by_tags(['abstract'])[:100]
@@ -111,7 +106,7 @@ if __name__ == "__main__":
     glue = Gui2Db(db, gui)
 
     tags = db.list_tags()
-    view = TagView(gui, db, tags)
+    view = TagView(gui, tags)
     view.widget.bind('<<TagViewSearch>>', glue.search)
     view.widget.bind('<<TagViewEdit>>',
             lambda e: gui.text_query('Edit tag: ', e.widget.selection()[0]))

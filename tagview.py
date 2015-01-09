@@ -7,9 +7,8 @@ from tkgraphics import Gallery
 
 class TagView(object):
 
-    def __init__(self, main, db, tags):
+    def __init__(self, main, tags):
         self.main = main
-        self.db = db
         self.widget = Treeview(self.main.root, columns=['name'])
         self.widget.column('name', width=50)
         self.widget['show'] = 'tree'
