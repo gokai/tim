@@ -52,7 +52,10 @@ editview = {
 appwide = {
         '<Control-q>':'quit',
         '<Control-w>':'next_view',
-        '<Control-d>':'delete_view'
+        '<Control-d>':'delete_view',
+        '<Control-a>':'add_tags',
+        '<Control-o>':'add_images',
+        '<Control-p>':'add_folder',
 }
 
 # Bindings for the tagview on the sidebar
