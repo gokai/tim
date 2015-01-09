@@ -312,8 +312,20 @@ class FileDatabase(object):
         """Renames tags given in tag_pairs with values from tag_pairs.
          tag_pairs    an iterable of (old_name, new_name) pairs."""
         cursor = self.connection.cursor()
-        cursor.executemany("""UPDATE tags SET name=?2 WHERE name=?1""", 
-                (pair for pair in tag_pairs))
+        cursor.executemany("""UPDATE tags SET name=?2 WHERE name=?1""", tag_pairs)
+        self.connection.commit()
+    
+    def join_tags(self, tag1, tag2):
+        """Combines two tags into one, removing tag2 from database.
+        All references to tag2 are changed to refer to tag1.
+        tag1    the first tag
+        tag2    the second tag. Will be removed."""
+        cursor = self.connection.cursor()
+        ids = self.get_tag_ids((tag1, tag2))
+        cursor.execute("""UPDATE file_tags SET tag_id = ?1 WHERE tag_id = ?2""", (ids[tag1], ids[tag2]))
+        cursor.execute("""UPDATE collection_tags SET tag_id=?1 WHERE tag_id = ?2""", (ids[tag1], ids[tag2]))
+        cursor.execute("""DELETE FROM tags WHERE id = ?""", (ids[tag2], ))
+        self.connection.commit()
 
     def export_collection(self, collection):
         """Creates an archive with all files and metadata of a collection.
