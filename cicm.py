@@ -24,7 +24,7 @@ import keybindings
 
 if __name__ == "__main__":
 
-    dbname = 'winexperiment.sqlite'
+    dbname = 'experiment.sqlite'
     db = FileDatabase(dbname)
     mainview = Main()
 
@@ -40,6 +40,7 @@ if __name__ == "__main__":
         'add_tags' : lambda e: mainview.text_query('Add tags: '),
         'add_images' : glue.add_files,
         'add_folder' : glue.add_directory,
+        'remove_tags': glue.remove_tags_from_files,
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
 
