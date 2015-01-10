@@ -6,6 +6,7 @@ from tkinter.messagebox import askyesno, showwarning
 from tkinter.simpledialog import askstring
 
 from tkgraphics import gallery_with_slideshow
+from dialog import ListDialog
 
 class Gui2Db(object):
     def __init__(self, db, main):
@@ -100,4 +101,21 @@ class Gui2Db(object):
                 fileinfos.append({'name':path, 'tags':tag_list})
         self.db.add_files(fileinfos)
         self.main.sidebar.append_tags(tag_list)
+
+    def _remove_tags(self, ids, tags):
+        for key in ids:
+            self.db.remove_tags_from_file(ids[key], tags)
+
+
+    def remove_tags_from_files(self, event):
+        view = self.main.views[self.main.cur_view]
+        names = [view.get_path(i) for i in view.selection]
+        ids = self.db.get_file_ids(names)
+        tags = set()
+        for key in ids:
+            tags.update(self.db.get_file_tags(ids[key]))
+        tags = tuple(tags)
+        dialog = ListDialog(self.main.root, tags, 
+                'Select tags to remove from\n{}'.format(',\n'.join(names)),
+                lambda t: self._remove_tags(ids, t))
 
