@@ -289,6 +289,7 @@ class Gallery(object):
         self.widget.tag_lower(item.rectangle_id, item.cid)
 
     def view_item(self, item):
+        self.widget['scrollregion'] = self.widget.bbox('all')
         bbox = self.widget.bbox(item.cid)
         max_y = self.widget.bbox('all')[3]
         max_visible_y = self.widget.canvasy(self.widget.winfo_height())
@@ -296,7 +297,7 @@ class Gallery(object):
         top = bbox[1]
         bottom = bbox[3]
         if bottom > max_visible_y or top < min_visible_y:
-            self.widget.yview_moveto((top + 1) / max_y)
+            self.widget.yview_moveto((top - self.thumb_h) / max_y)
 
 
 
@@ -323,12 +324,12 @@ if __name__ == "__main__":
             ss.widget.winfo_width = g.widget.winfo_width
             ss.widget.winfo_height = g.widget.winfo_height
             ss.widget.grid(column=0, row=0)
-            ss.widget.bind('<q>', lambda e: ss.destroy())
-            ss.widget.bind('<Destroy>', lambda e: g.focus_set())
+            ss.widget.bind('<q>', lambda e: ss.widget.destroy())
+            ss.widget.bind('<Destroy>', lambda e: g.widget.focus_set())
 
         g.widget.grid(column=0, row=0, sticky=(N, W, E, S))
         g.widget.focus_set()
-        sb = Scrollbar(tk, command = g.yview)
+        sb = Scrollbar(tk, command = g.widget.yview)
         g.widget['yscrollcommand'] = sb.set
         sb.grid(column=1, row=0, sticky=(N,S))
     tk.mainloop()
