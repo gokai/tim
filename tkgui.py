@@ -80,6 +80,7 @@ class Main(object):
             self._query.event_generate('<<MainQueryClose>>')
             self._query.destroy()
             self._query = None
+            self._menucolumn -= 1
 
     def text_query(self, query_lable, original_text=None):
         frame = Frame(self.menubar)
@@ -95,7 +96,8 @@ class Main(object):
                 {'accept': lambda e: entry.event_generate('<<MainQueryAccept>>'),
                  'cancel': lambda e: self.close_query()}, entry.bind)
 
-        frame.grid(column=1, row=0)
+        frame.grid(column=self._menucolumn, row=0)
+        self._menucolumn += 1
         entry.focus_set()
         self._query = frame
 

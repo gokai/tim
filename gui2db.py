@@ -48,7 +48,7 @@ class Gui2Db(object):
         else:
             self.db.rename_tags(((old_name, new_name), ))
         self.main.close_query()
-        self.main.sidebar.widget.delete(old_name)
+        self.main.sidebar.delete(old_name)
         self.main.sidebar.append_tags((new_name, ))
 
     def add_or_rename_tags(self, event):
@@ -58,7 +58,7 @@ class Gui2Db(object):
             self.add_tags_from_entry(event)
 
     def query_tags(self):
-        selected_tags = self.main.sidebar.widget.selection()
+        selected_tags = self.main.sidebar.selection()
         new_tags = list()
         add_sel_tags = False
         tag_string = askstring('New tags?', 'Give tags to new files:')

@@ -21,12 +21,14 @@ class TagView(object):
                 }
         kb.make_bindings(kb.tagview, actions, self.widget.bind)
         self._iids = dict()
+        self._tags = dict()
         for tag in sorted(tags):
             iid = self.widget.insert('', 'end', text=tag)
-            self._iids[iid] = tag
+            self._tags[iid] = tag
+            self._iids[tag] = iid
 
     def selection(self):
-        return [self._iids[iid] for iid in self.widget.selection()]
+        return [self._tags[iid] for iid in self.widget.selection()]
 
     def edit(self):
         self.widget.event_generate('<<TagViewEdit>>')
@@ -39,9 +41,13 @@ class TagView(object):
     def append_tags(self, tags):
         for tag in tags:
             # no reason to show same tag twice
-            if not self.widget.exists(tag):
-                self.widget.insert('', 'end', iid=tag, text=tag)
+            if tag not in self._iids.values():
+                iid = self.widget.insert('', 'end', text=tag)
+                self._tags[iid] = tag
+                self._iids[tag] = iid
 
+    def delete(self, tag):
+        self.widget.delete(self._iids[tag])
 
     def focus_next(self):
         cur_iid = self.widget.focus()
