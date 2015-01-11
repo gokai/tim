@@ -308,6 +308,33 @@ class FileDatabase(object):
             tags.append(row[0])
         return tags
 
+    def list_all_files(self):
+        """Returns a list of all files in the database."""
+        cursor = self.connection.cursor()
+        cursor.execute("""SELECT files.id AS id, files.name AS name, paths.name AS path,
+                                 files.date AS date, group_concat(tags.name) AS tags
+                          FROM files, file_tags, tags, paths
+                          WHERE tags.id = file_tags.tag_id AND files.path = paths.id AND
+                               file_tags.file_id = files.id
+                          GROUP BY files.id
+                        """)
+        res = list()
+        for row in cursor:
+            res.append(dict(row))
+            res[-1]['tags'] = res[-1]['tags'].split(',')
+        return res
+
+    def remove_deleted_files(self):
+        """Removes files no longer present on filesystem from database."""
+        files = self.list_all_files()
+        paths = self.get_full_paths(files)
+        removed = dict()
+        for i, path in enumerate(paths):
+            if not os.path.exists(path):
+                removed[path] = files[i]['id']
+        self.remove_files(removed)
+
+
     def rename_tags(self, tag_pairs):
         """Renames tags given in tag_pairs with values from tag_pairs.
          tag_pairs    an iterable of (old_name, new_name) pairs."""
