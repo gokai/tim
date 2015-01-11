@@ -27,6 +27,8 @@ class TagView(object):
         self.widget.event_generate('<<TagViewEdit>>')
 
     def search(self):
+        if len(self.widget.selection()) == 0:
+            self.widget.selection_add(self.widget.focus())
         self.widget.event_generate('<<TagViewSearch>>')
 
     def append_tags(self, tags):
