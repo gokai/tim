@@ -16,7 +16,8 @@ class TagView(object):
                 'search': lambda e: self.search(),
                 'focus_next': lambda e: self.focus_next(),
                 'focus_prev': lambda e: self.focus_prev(),
-                'select': lambda e: self.widget.selection_toggle(self.widget.focus())
+                'select': lambda e: self.widget.selection_toggle(self.widget.focus()),
+                'clear_selection': lambda e: self.widget.selection_set([])
                 }
         kb.make_bindings(kb.tagview, actions, self.widget.bind)
         for tag in sorted(tags):

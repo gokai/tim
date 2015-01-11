@@ -44,6 +44,7 @@ tagview = {
         'e':'edit',
         's':'search',
         '<space>':'select',
+        '<Control-c>':'clear_selection',
         'j':'focus_next',
         'k':'focus_prev',
         '<Return>':'search',
