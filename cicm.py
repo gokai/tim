@@ -24,7 +24,9 @@ import keybindings
 
 if __name__ == "__main__":
 
-    dbname = 'experiment.sqlite'
+    dbname = 'master.sqlite'
+    if len(sys.argv) > 1:
+        dbname = sys.argv[1]
     db = FileDatabase(dbname)
     mainview = Main()
 
