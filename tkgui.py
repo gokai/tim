@@ -26,6 +26,7 @@ class Main(object):
         root.rowconfigure(1, weight=1)
         self.menubar = Frame(root)
         self.menubar.grid(row=0, column=0, sticky=(W, E))
+        self.menubar['takefocus'] = False
         quit_button = Button(self.menubar, text='Quit', command=self.quit)
         quit_button.grid(row=0, column=0)
         self._menucolumn = 1
@@ -44,6 +45,7 @@ class Main(object):
     def add_sidebar(self, view):
         self.sidebar = view
         self.paned_win.add(self.sidebar.widget, weight=1)
+        self.sidebar.widget.focus_set()
 
     def new_view(self, view):
         self.views.append(view)
