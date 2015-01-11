@@ -329,10 +329,13 @@ class FileDatabase(object):
         files = self.list_all_files()
         paths = self.get_full_paths(files)
         removed = dict()
+        ret_val = list()
         for i, path in enumerate(paths):
             if not os.path.exists(path):
                 removed[path] = files[i]['id']
+                ret_val.append(path)
         self.remove_files(removed)
+        return ret_val
 
 
     def rename_tags(self, tag_pairs):
