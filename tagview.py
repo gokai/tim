@@ -13,7 +13,10 @@ class TagView(object):
         self.widget.column('name', width=50)
         self.widget['show'] = 'tree'
         actions = {'edit': lambda e: self.edit(),
-                'search': lambda e: self.search()
+                'search': lambda e: self.search(),
+                'focus_next': lambda e: self.focus_next(),
+                'focus_prev': lambda e: self.focus_prev(),
+                'select': lambda e: self.widget.selection_toggle(self.widget.focus())
                 }
         kb.make_bindings(kb.tagview, actions, self.widget.bind)
         for tag in sorted(tags):
@@ -32,3 +35,21 @@ class TagView(object):
                 self.widget.insert('', 'end', iid=tag, text=tag)
 
 
+    def focus_next(self):
+        cur_iid = self.widget.focus()
+        next_iid = self.widget.next(cur_iid)
+        if next_iid == '':
+            iids = self.widget.get_children()
+            next_iid = iids[0]
+        self.widget.focus(next_iid)
+        self.widget.see(next_iid)
+
+    def focus_prev(self):
+        cur_iid = self.widget.focus()
+        prev_iid = self.widget.prev(cur_iid)
+        if prev_iid == '':
+            iids = self.widget.get_children()
+            prev_iid = iids[-1]
+        self.widget.focus(prev_iid)
+        self.widget.see(prev_iid)
+        

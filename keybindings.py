@@ -42,7 +42,13 @@ appwide = {
 # Bindings for the tagview on the sidebar
 tagview = {
         'e':'edit',
-        's':'search'
+        's':'search',
+        '<space>':'select',
+        'j':'focus_next',
+        'k':'focus_prev',
+        '<Return>':'search',
+        '<Up>':'focus_prev',
+        '<Down>':'focus_next',
 }
 
 # Bindings for text entries
