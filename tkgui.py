@@ -28,12 +28,18 @@ class Main(object):
         self.menubar.grid(row=0, column=0, sticky=(W, E))
         quit_button = Button(self.menubar, text='Quit', command=self.quit)
         quit_button.grid(row=0, column=0)
+        self._menucolumn = 1
         self.views = list()
         self.cur_view = 0
         self.delete_current_view = lambda e: self.remove_view(self.views[self.cur_view]) 
         self.paned_win.grid(row=1, column=0, sticky=(N, S, W, E))
         self._root = root
         self._query = None
+
+    def add_menubutton(self, label, action):
+        button = Button(self.menubar, text=label, command=action)
+        button.grid(row=0, column=self._menucolumn)
+        self._menucolumn += 1
 
     def add_sidebar(self, view):
         self.sidebar = view

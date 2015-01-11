@@ -2,7 +2,7 @@ import os
 from mimetypes import guess_type
 
 from tkinter.filedialog import askopenfilenames, askdirectory
-from tkinter.messagebox import askyesno, showwarning
+from tkinter.messagebox import askyesno, showwarning, showinfo
 from tkinter.simpledialog import askstring
 
 from tkgraphics import gallery_with_slideshow
@@ -118,4 +118,12 @@ class Gui2Db(object):
         dialog = ListDialog(self.main.root, tags, 
                 'Select tags to remove from\n{}'.format(',\n'.join(names)),
                 lambda t: self._remove_tags(ids, t))
+
+
+    def remove_deleted_files(self):
+        if askyesno('Remove deleted files?',
+                'Are you sure you want to remove deleted files from the database? This cannot be undone'):
+            removed = self.db.remove_deleted_files()
+            showinfo('Removed files.', 
+                    "The following files have been removed:\n{}".format('\n'.join(removed)))
 

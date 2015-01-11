@@ -45,6 +45,11 @@ if __name__ == "__main__":
         'remove_tags': glue.remove_tags_from_files,
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
+    buttons = {
+            'Remove deleted': glue.remove_deleted_files,
+    }
+    for label in buttons:
+        mainview.add_menubutton(label, buttons[label])
 
     # Custom virtual events do not need to be user bindable
     # since their generation is user bindable. -> no dictionaries used.
