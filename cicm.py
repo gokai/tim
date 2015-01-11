@@ -54,7 +54,8 @@ if __name__ == "__main__":
     # Custom virtual events do not need to be user bindable
     # since their generation is user bindable. -> no dictionaries used.
     mainview.root.bind_all('<<TagViewSearch>>', glue.search)
-    mainview.root.bind_all('<<TagViewEdit>>', lambda e: mainview.text_query('Edit tag:', e.widget.selection()[0]))
+    mainview.root.bind_all('<<TagViewEdit>>',
+            lambda e: mainview.text_query('Edit tag:', tview.selection()[0]))
     mainview.root.bind_all('<<MainQueryAccept>>', glue.add_or_rename_tags)
 
     mainview.add_sidebar(tview)
