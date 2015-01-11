@@ -20,8 +20,13 @@ class TagView(object):
                 'clear_selection': lambda e: self.widget.selection_set([])
                 }
         kb.make_bindings(kb.tagview, actions, self.widget.bind)
+        self._iids = dict()
         for tag in sorted(tags):
-            self.widget.insert('', 'end', iid=tag, text=tag)
+            iid = self.widget.insert('', 'end', text=tag)
+            self._iids[iid] = tag
+
+    def selection(self):
+        return [self._iids[iid] for iid in self.widget.selection()]
 
     def edit(self):
         self.widget.event_generate('<<TagViewEdit>>')

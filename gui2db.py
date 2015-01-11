@@ -14,7 +14,7 @@ class Gui2Db(object):
         self.main = main
 
     def search(self, event):
-        tags = event.widget.selection()
+        tags = self.main.sidebar.selection()
         files = self.db.search_by_tags(tags)
         paths = [os.path.join(d['path'], d['name']) for d in files]
         self.main.new_view(gallery_with_slideshow(self.main.root, paths, self.main.new_view))
@@ -22,7 +22,7 @@ class Gui2Db(object):
     def add_tags_from_tagview(self, event, tagview):
         db_ids = self.ids_from_gallery(event.widget)
         for id_key in db_ids:
-            self.db.add_tags_to_file(db_ids[id_key], tagview.widget.selection())
+            self.db.add_tags_to_file(db_ids[id_key], tagview.selection())
 
     def add_tags_from_entry(self, event):
         entry = event.widget
