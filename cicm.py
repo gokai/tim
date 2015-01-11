@@ -14,40 +14,44 @@ __copyright__ = "Copyright (c) 2010 Tachara"
 import sys
 import os
 
-from ui import get_file_dir, ImageView
-from cui import CicmInterpreter, ImageCollectionLibrary
-from settings import Settings, Text
-__found_gui = True
-try:
-    from gui import GUI
-except ImportError as ie:
-    __found_gui = False
+from db import FileDatabase
+from gui2db import Gui2Db
+from tkgui import Main
+from tkgraphics import gallery_with_slideshow
+from tagview import TagView
+
+import keybindings
 
 if __name__ == "__main__":
-    
-    cicmpath = get_file_dir()
-    wd       = os.getcwd()
-    os.chdir(cicmpath)
 
-    settings = Settings("cicm.xml")
-    args     = sys.argv
-    argc     = len(args)
+    dbname = 'master.sqlite'
+    if len(sys.argv) > 1:
+        dbname = sys.argv[1]
+    db = FileDatabase(dbname)
+    mainview = Main()
 
-    command = ""
-    if argc > 1:
-        command = args[1]
+    glue = Gui2Db(db, mainview)
 
-    if command != "graph":
-        graphics    = ImageView()
-        short_paths = Settings(os.path.join(cicmpath, settings["paths"]))
-        lang        = Text(settings["lang"], cicmpath)
-        library     = ImageCollectionLibrary(cicmpath, settings, short_paths, lang)
-        interpreter = CicmInterpreter(wd, settings, graphics, library)
-        interpreter.intro = "Welcome to cicm!"
-        if command != "":
-            interpreter.onecmd(" ".join(args[1:]))
-        else:
-            interpreter.cmdloop()
-    elif __found_gui:
-        gui = GUI()
-        gui.main()
+    tags = db.list_tags()
+    tview = TagView(mainview, tags)
+
+    actions = {
+        'quit' : lambda e: mainview.quit(),
+        'next_view' : lambda e: mainview.next_view(),
+        'delete_view': mainview.delete_current_view,
+        'add_tags' : lambda e: mainview.text_query('Add tags: '),
+        'add_images' : glue.add_files,
+        'add_folder' : glue.add_directory,
+        'remove_tags': glue.remove_tags_from_files,
+    }
+    keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
+
+    # Custom virtual events do not need to be user bindable
+    # since their generation is user bindable. -> no dictionaries used.
+    mainview.root.bind_all('<<TagViewSearch>>', glue.search)
+    mainview.root.bind_all('<<TagViewEdit>>', lambda e: mainview.text_query('Edit tag:', e.widget.selection()[0]))
+    mainview.root.bind_all('<<MainQueryAccept>>', glue.add_or_rename_tags)
+
+    mainview.add_sidebar(tview)
+    mainview.display()
+
