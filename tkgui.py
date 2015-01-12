@@ -36,6 +36,7 @@ class Main(object):
         self.paned_win.grid(row=1, column=0, sticky=(N, S, W, E))
         self._root = root
         self._query = None
+        self._accept_func = None
 
     def add_menubutton(self, label, action):
         button = Button(self.menubar, text=label, command=action)
@@ -82,10 +83,19 @@ class Main(object):
             self._query = None
             self._menucolumn -= 1
 
-    def text_query(self, query_lable, original_text=None):
+    def accept_query(self, event):
+        if self._query is not None:
+            if self._accept_func is not None:
+                self._accept_func(event.widget.get(), event.widget.original_value)
+                self.close_query()
+            else:
+                widget.event_generate('<<MainQueryAccept>>')
+
+    def text_query(self, query_lable, original_text=None, accept_func=None):
         frame = Frame(self.menubar)
         label = Label(frame, text=query_lable)
         label.grid(column=0, row=0, sticky=(N, S))
+        self._accept_func = accept_func
 
         entry = Entry(frame)
         if original_text is not None:
@@ -93,7 +103,7 @@ class Main(object):
         entry.original_value = original_text
         entry.grid(column=1, row=0, sticky=(N,S,W,E))
         kb.make_bindings(kb.text_query, 
-                {'accept': lambda e: entry.event_generate('<<MainQueryAccept>>'),
+                {'accept': self.accept_query,
                  'cancel': lambda e: self.close_query()}, entry.bind)
 
         frame.grid(column=self._menucolumn, row=0)

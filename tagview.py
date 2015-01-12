@@ -49,14 +49,17 @@ class TagView(object):
     def delete(self, tag):
         self.widget.delete(self._iids[tag])
 
+    def _focus(self, iid):
+        self.widget.focus(iid)
+        self.widget.see(iid)
+
     def focus_next(self):
         cur_iid = self.widget.focus()
         next_iid = self.widget.next(cur_iid)
         if next_iid == '':
             iids = self.widget.get_children()
             next_iid = iids[0]
-        self.widget.focus(next_iid)
-        self.widget.see(next_iid)
+        self._focus(next_iid)
 
     def focus_prev(self):
         cur_iid = self.widget.focus()
@@ -64,6 +67,12 @@ class TagView(object):
         if prev_iid == '':
             iids = self.widget.get_children()
             prev_iid = iids[-1]
-        self.widget.focus(prev_iid)
-        self.widget.see(prev_iid)
+        self._focus(prev_iid)
+
+    def jump_to(self, tag):
+        try:
+            iid = self._iids[tag]
+            self._focus(iid)
+        except KeyError:
+            pass
         

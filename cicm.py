@@ -44,6 +44,8 @@ if __name__ == "__main__":
         'add_folder' : glue.add_directory,
         'remove_tags': glue.remove_tags_from_files,
         'focus_sidebar': lambda e: mainview.sidebar.widget.focus_set(),
+        'jump_to_tag': lambda e: mainview.text_query('Jump to tag: ',
+            accept_func=lambda t, o: tview.jump_to(t))
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
     buttons = {
