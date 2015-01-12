@@ -43,6 +43,7 @@ if __name__ == "__main__":
         'add_images' : glue.add_files,
         'add_folder' : glue.add_directory,
         'remove_tags': glue.remove_tags_from_files,
+        'focus_sidebar': lambda e: mainview.sidebar.widget.focus_set(),
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
     buttons = {

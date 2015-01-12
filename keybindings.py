@@ -37,6 +37,7 @@ appwide = {
         '<Control-o>':'add_images',
         '<Control-f>':'add_folder',
         '<Control-r>':'remove_tags',
+        '<Control-s>':'focus_sidebar'
 }
 
 # Bindings for the tagview on the sidebar
