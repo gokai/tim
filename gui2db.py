@@ -93,7 +93,7 @@ class Gui2Db(object):
 
     def add_directory(self, event):
         directory = askdirectory()
-        if directory == '':
+        if len(directory) == 0:
             return
         fileinfos = list()
         tag_list = self.query_tags()
