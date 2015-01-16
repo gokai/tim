@@ -33,7 +33,7 @@ if __name__ == "__main__":
     glue = Gui2Db(db, mainview)
 
     tags = db.list_tags()
-    tview = TagView(mainview, tags)
+    tview = TagView(mainview.sidebar, tags)
 
     actions = {
         'quit' : lambda e: mainview.quit(),
@@ -43,9 +43,10 @@ if __name__ == "__main__":
         'add_images' : glue.add_files,
         'add_folder' : glue.add_directory,
         'remove_tags': glue.remove_tags_from_files,
-        'focus_sidebar': lambda e: mainview.sidebar.widget.focus_set(),
         'jump_to_tag': lambda e: mainview.text_query('Jump to tag: ',
             accept_func=lambda t, o: tview.jump_to(t))
+        'focus_sidebar': lambda e: mainview.sidebar_views[0].widget.focus_set(),
+        'toggle_selection_tags': glue.toggle_selection_tags,
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
     buttons = {

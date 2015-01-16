@@ -37,6 +37,9 @@ class Main(object):
         self._root = root
         self._query = None
         self._accept_func = None
+        self.sidebar_views = list()
+        self.sidebar = PanedWindow(self.root)
+        self.root.add(self.sidebar, weight=1)
 
     def add_menubutton(self, label, action):
         button = Button(self.menubar, text=label, command=action)
@@ -44,9 +47,9 @@ class Main(object):
         self._menucolumn += 1
 
     def add_sidebar(self, view):
-        self.sidebar = view
-        self.paned_win.add(self.sidebar.widget, weight=1)
-        self.sidebar.widget.focus_set()
+        self.sidebar_views.append(view)
+        self.sidebar.add(view.widget, weight=1)
+        self.sidebar_views[-1].widget.focus_set()
 
     def new_view(self, view):
         self.views.append(view)
@@ -65,7 +68,7 @@ class Main(object):
             self.cur_view -= 1
             self.paned_win.add(self.views[self.cur_view].widget, weight=5)
         else:
-            self.sidebar.widget.focus_set()
+            self.sidebar_views[0].widget.focus_set()
 
     def next_view(self):
         self.paned_win.forget(self.views[self.cur_view].widget)
