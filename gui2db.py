@@ -13,9 +13,10 @@ class Gui2Db(object):
     def __init__(self, db, main):
         self.db = db
         self.main = main
+        self._selection_tags_view = None
 
     def search(self, event):
-        tags = self.main.sidebar_views[0].selection()
+        tags = self.main.get_sidebar_view(event.widget).selection()
         files = self.db.search_by_tags(tags)
         paths = [os.path.join(d['path'], d['name']) for d in files]
         self.main.new_view(gallery_with_slideshow(self.main.root, paths, self.main.new_view))
@@ -33,7 +34,7 @@ class Gui2Db(object):
         for fid_key in file_ids:
             self.db.add_tags_to_file(file_ids[fid_key], tag_list)
         self.main.close_query()
-        self.main.sidebar_views[0].append_tags(tag_list)
+        self.main.get_sidebar_view('main').append_tags(tag_list)
 
     def ids_from_gallery(self, gallery):
         gal_ids = gallery.selection
@@ -49,8 +50,9 @@ class Gui2Db(object):
         else:
             self.db.rename_tags(((old_name, new_name), ))
         self.main.close_query()
-        self.main.sidebar_views[0].delete(old_name)
-        self.main.sidebar_views[0].append_tags((new_name, ))
+        tagview = self.main.get_sidebar_view('main')
+        tagview.delete(old_name)
+        tagview.append_tags((new_name, ))
 
     def add_or_rename_tags(self, event):
         if event.widget.original_value is not None:
@@ -59,7 +61,7 @@ class Gui2Db(object):
             self.add_tags_from_entry(event)
 
     def query_tags(self):
-        selected_tags = self.main.sidebar_views[0].selection()
+        selected_tags = self.main.get_sidebar_view('main').selection()
         new_tags = list()
         add_sel_tags = False
         tag_string = askstring('New tags?', 'Give tags to new files:')
@@ -87,7 +89,7 @@ class Gui2Db(object):
             else:
                 fileinfos.append({'name':name, 'tags':tag_list})
         self.db.add_files(fileinfos)
-        self.main.sidebar_views[0].append_tags(tag_list)
+        self.main.get_sidebar_view('main').append_tags(tag_list)
 
     def add_directory(self, event):
         directory = askdirectory()
@@ -101,7 +103,7 @@ class Gui2Db(object):
             if not os.path.isdir(path) and f_type[0] is not None and 'image' in f_type[0]:
                 fileinfos.append({'name':path, 'tags':tag_list})
         self.db.add_files(fileinfos)
-        self.main.sidebar_views[0].append_tags(tag_list)
+        self.main.get_sidebar_view('main').append_tags(tag_list)
 
     def _remove_tags(self, ids, tags):
         for key in ids:
@@ -140,12 +142,12 @@ class Gui2Db(object):
                 tags.intersection_update(ftags)
         view = TagView(self.main.sidebar, list(tags))
         self.main.add_sidebar(view)
+        self._selection_tags_view = view
 
     def toggle_selection_tags(self, event):
-        if len(self.main.sidebar_views) > 1:
-            view = self.main.sidebar_views[1]
-            self.main.sidebar.forget(view.widget)
-            self.main.sidebar_views.remove(view)
+        if self.main.sidebar_count > 1:
+            self.main.remove_sidebar_view(self._selection_tags_view)
+            self._selection_tags_view = None
         else:
             self.show_selection_tags(event)
 
