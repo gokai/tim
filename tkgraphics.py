@@ -262,7 +262,7 @@ class Gallery(object):
         self.cursor = (column, row, index or row*self.max_columns + column)
         self.widget.addtag_withtag('selected', item.cid)
         self.view_item(item)
-        self.selection.add(item.index)
+        self._selection_add(item)
 
     def remove_cursor(self, item, state):
         # control key was down -> selection
@@ -270,9 +270,17 @@ class Gallery(object):
             self.set_state(item, 'selected')
         else:
             if 'selected' in self.widget.gettags(item.cid) and item.index in self.selection:
-                self.selection.remove(item.index)
+                self._selection_remove(item)
             self.set_state(item, 'normal')
             self.widget.dtag(item.cid, 'selected')
+
+    def _selection_add(self, item):
+        self.selection.add(item.index)
+        self.widget.event_generate('<<GallerySelectionChanged>>')
+
+    def _selection_remove(self, item):
+        self.selection.remove(item.index)
+        self.widget.event_generate('<<GallerySelectionChanged>>')
 
     def set_state(self, item, state):
         color = ''
