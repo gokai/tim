@@ -76,4 +76,7 @@ class TagView(object):
             self._focus(iid)
         except KeyError:
             pass
+
+    def get_tag_list(self):
+        return tuple(self._tags.values())
         

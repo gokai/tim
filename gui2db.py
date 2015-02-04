@@ -129,10 +129,7 @@ class Gui2Db(object):
             showinfo('Removed files.', 
                     "The following files have been removed:\n{}".format('\n'.join(removed)))
 
-    def show_selection_tags(self, event):
-        selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
-        if len(selection) == 0:
-            return
+    def _get_tags_from_db(self, selection):
         tags = set()
         for fid in selection.values():
             ftags = self.db.get_file_tags(fid)
@@ -140,6 +137,13 @@ class Gui2Db(object):
                 tags.update(ftags)
             else:
                 tags.intersection_update(ftags)
+        return tags
+
+    def show_selection_tags(self, event):
+        selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
+        if len(selection) == 0:
+            return
+        tags = self._get_tags_from_db(selection)
         view = TagView(self.main.sidebar, list(tags))
         self.main.add_sidebar(view)
         self._selection_tags_view = view
@@ -150,4 +154,19 @@ class Gui2Db(object):
             self._selection_tags_view = None
         else:
             self.show_selection_tags(event)
+
+    def update_selection_tags(self, event):
+        if self._selection_tags_view is None:
+            return
+        selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
+        if len(selection) == 0:
+            self.main.reomve_sidebar_view(self._selection_tags_view)
+            return
+        cur_tags = set(self._selection_tags_view.get_tag_list())
+        new_tags = self._get_tags_from_db(selection)
+        add_tags = new_tags.difference(cur_tags)
+        del_tags = cur_tags.difference(new_tags)
+        for tag in del_tags:
+            self._selection_tags_view.delete(tag)
+        self._selection_tags_view.append_tags(add_tags)
 

@@ -61,6 +61,7 @@ if __name__ == "__main__":
     mainview.root.bind_all('<<TagViewEdit>>',
             lambda e: mainview.text_query('Edit tag:', tview.selection()[0]))
     mainview.root.bind_all('<<MainQueryAccept>>', glue.add_or_rename_tags)
+    mainview.root.bind_all('<<GallerySelectionChanged>>', glue.update_selection_tags)
 
     mainview.add_sidebar(tview)
     mainview.display()
