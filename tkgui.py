@@ -75,9 +75,9 @@ class Main(object):
     def remove_view(self, view):
         self.views.remove(view)
         self.paned_win.forget(view.widget)
+        self.cur_view -= 1
         if len(self.views) >= 1:
             self.views[-1].widget.focus_set()
-            self.cur_view -= 1
             self.paned_win.add(self.views[self.cur_view].widget, weight=5)
         else:
             self.sidebar_views['main'].widget.focus_set()
@@ -86,7 +86,7 @@ class Main(object):
         self.paned_win.forget(self.views[self.cur_view].widget)
         self.cur_view += 1
         if self.cur_view >= len(self.views):
-            self.cur_view = 1
+            self.cur_view = 0
         new_view = self.views[self.cur_view]
         self.paned_win.add(new_view.widget, weight=5)
         new_view.widget.focus_set()
