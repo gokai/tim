@@ -21,7 +21,7 @@ def resize(image, target_height, target_width):
 
 def gallery_with_slideshow(root, paths, new_view):
     gal = Gallery(root, paths, (250,250), 
-        lambda s: new_view(SlideShow(root, [gal.get_path(i) for i in s])))
+        lambda s: new_view(SlideShow(root, s)))
     return gal
 
 
@@ -31,7 +31,7 @@ class SlideShow(object):
         self.paths = paths
         self.img = paths[pos]
         self.pos = pos
-        self.widget = Label(root)
+        self.widget = Label(root, takefocus=True)
         self.root = root
         self.make_view()
         self.widget.bind('<Expose>', lambda e: self.reload())
@@ -67,8 +67,10 @@ class SlideShow(object):
         self.img = self.paths[self.pos]
         self._pil_image = None
         self.reload()
+        self.widget.event_generate('<<SlideShowNext>>')
         if self._tid is not None:
-            self._tid = self.widget.after(self.delay, self.next())
+            self.widget.after_cancel(self._tid)
+            self._tid = self.widget.after(self.delay, self.next)
 
     def prev(self):
         self.pos -= 1
@@ -77,7 +79,9 @@ class SlideShow(object):
         self.img = self.paths[self.pos]
         self._pil_image = None
         self.reload()
+        self.widget.event_generate('<<SlideShowPrev>>')
         if self._tid is not None:
+            self.widget.after_cancel(self._tid)
             self._tid = self.widget.after(self.delay, self.next)
 
     def start(self, delay):
@@ -86,6 +90,10 @@ class SlideShow(object):
 
     def stop(self):
         self.widget.after_cancel(self._tid)
+        self._tid = None
+
+    def selection(self):
+        return [self.paths[self.pos],]
 
 
     
@@ -97,7 +105,7 @@ class Gallery(object):
         self.thumb_w = thumb_size[0]
         self.thumb_h = thumb_size[1]
         self.photos = list()
-        self.selection = set()
+        self._selection = set()
         self.widget = Canvas(root)
         self.make_view()
         self.make_bindings()
@@ -132,17 +140,21 @@ class Gallery(object):
         self.widget.after(100, self.load_next)
 
     def activate(self, e):
-        self.activate_func(list(self.selection))
+        self.activate_func(self.selection())
         self.widget.focus_set()
 
     def get_path(self, item_id):
         return self.paths[item_id]
 
+    def selection(self):
+        paths = [self.paths[i] for i in self._selection]
+        return paths
+
     def clear_selection(self):
         self.widget.dtag('selected', 'selected')
-        for index in self.selection:
+        for index in self._selection:
             self.set_state(self.photos[index], 'normal')
-        self.selection.clear()
+        self._selection.clear()
 
     def button_callback(self, event, item, column, row):
         prev_item = self.photos[self.cursor[2]]
@@ -269,18 +281,17 @@ class Gallery(object):
         if state & 0x0004:
             self.set_state(item, 'selected')
         else:
-            if 'selected' in self.widget.gettags(item.cid) and item.index in self.selection:
+            if 'selected' in self.widget.gettags(item.cid) and item.index in self._selection:
                 self._selection_remove(item)
             self.set_state(item, 'normal')
             self.widget.dtag(item.cid, 'selected')
 
     def _selection_add(self, item):
-        self.selection.add(item.index)
+        self._selection.add(item.index)
         self.widget.event_generate('<<GallerySelectionChanged>>')
 
     def _selection_remove(self, item):
-        self.selection.remove(item.index)
-        self.widget.event_generate('<<GallerySelectionChanged>>')
+        self._selection.remove(item.index)
 
     def set_state(self, item, state):
         color = ''

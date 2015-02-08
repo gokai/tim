@@ -37,9 +37,9 @@ class Gui2Db(object):
         self.main.get_sidebar_view('main').append_tags(tag_list)
 
     def ids_from_gallery(self, gallery):
-        gal_ids = gallery.selection
-        paths = [gallery.get_path(i) for i in gal_ids]
-        return self.db.get_file_ids(paths)
+        paths = gallery.selection()
+        ids = self.db.get_file_ids(paths)
+        return ids
 
     def rename_tag(self, event):
         entry = event.widget
@@ -160,7 +160,8 @@ class Gui2Db(object):
             return
         selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
         if len(selection) == 0:
-            self.main.reomve_sidebar_view(self._selection_tags_view)
+            self.main.remove_sidebar_view(self._selection_tags_view)
+            self._selection_tags_view = None
             return
         cur_tags = set(self._selection_tags_view.get_tag_list())
         new_tags = self._get_tags_from_db(selection)
