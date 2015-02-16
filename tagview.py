@@ -7,9 +7,8 @@ from tkgraphics import Gallery
 
 class TagView(object):
 
-    def __init__(self, main, tags):
-        self.main = main
-        self.widget = Treeview(self.main.root, columns=['name'])
+    def __init__(self, master, tags):
+        self.widget = Treeview(master, columns=['name'])
         self.widget.column('name', width=50)
         self.widget['show'] = 'tree'
         actions = {'edit': lambda e: self.edit(),
@@ -41,13 +40,15 @@ class TagView(object):
     def append_tags(self, tags):
         for tag in tags:
             # no reason to show same tag twice
-            if tag not in self._iids.values():
+            if tag not in self._tags.values():
                 iid = self.widget.insert('', 'end', text=tag)
                 self._tags[iid] = tag
                 self._iids[tag] = iid
 
     def delete(self, tag):
         self.widget.delete(self._iids[tag])
+        del self._tags[self._iids[tag]]
+        del self._iids[tag]
 
     def _focus(self, iid):
         self.widget.focus(iid)
@@ -75,4 +76,7 @@ class TagView(object):
             self._focus(iid)
         except KeyError:
             pass
+
+    def get_tag_list(self):
+        return tuple(self._tags.values())
         

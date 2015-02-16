@@ -37,6 +37,10 @@ class Main(object):
         self._root = root
         self._query = None
         self._accept_func = None
+        self.sidebar_views = dict()
+        self.sidebar_count = 0
+        self.sidebar = PanedWindow(self.root)
+        self.root.add(self.sidebar, weight=1)
 
     def add_menubutton(self, label, action):
         button = Button(self.menubar, text=label, command=action)
@@ -44,9 +48,20 @@ class Main(object):
         self._menucolumn += 1
 
     def add_sidebar(self, view):
-        self.sidebar = view
-        self.paned_win.add(self.sidebar.widget, weight=1)
-        self.sidebar.widget.focus_set()
+        self.sidebar_views[str(view.widget)] = view
+        self.sidebar.add(view.widget, weight=1)
+        view.widget.focus_set()
+        self.sidebar_count += 1
+        if 'main' not in self.sidebar_views:
+            self.sidebar_views['main'] = view
+
+    def remove_sidebar_view(self, view):
+        self.sidebar.forget(view.widget)
+        self.sidebar_count -= 1
+        del self.sidebar_views[str(view.widget)]
+
+    def get_sidebar_view(self, widget):
+        return self.sidebar_views[str(widget)]
 
     def new_view(self, view):
         self.views.append(view)
@@ -56,25 +71,28 @@ class Main(object):
         self.paned_win.add(view.widget, weight=5)
 
         view.widget.focus_set()
+        self.view_changed()
 
     def remove_view(self, view):
         self.views.remove(view)
         self.paned_win.forget(view.widget)
+        self.cur_view -= 1
         if len(self.views) >= 1:
             self.views[-1].widget.focus_set()
-            self.cur_view -= 1
             self.paned_win.add(self.views[self.cur_view].widget, weight=5)
         else:
-            self.sidebar.widget.focus_set()
+            self.sidebar_views['main'].widget.focus_set()
+        self.view_changed()
 
     def next_view(self):
         self.paned_win.forget(self.views[self.cur_view].widget)
         self.cur_view += 1
         if self.cur_view >= len(self.views):
-            self.cur_view = 1
+            self.cur_view = 0
         new_view = self.views[self.cur_view]
         self.paned_win.add(new_view.widget, weight=5)
         new_view.widget.focus_set()
+        self.view_changed()
 
     def close_query(self):
         if self._query is not None:
@@ -110,6 +128,9 @@ class Main(object):
         self._menucolumn += 1
         entry.focus_set()
         self._query = frame
+
+    def view_changed(self):
+        self._root.event_generate('<<MainViewChanged>>')
 
     def display(self):
         self._root.mainloop()

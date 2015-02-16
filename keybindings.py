@@ -31,14 +31,15 @@ slideshow = {
 # Bindings global to the application
 appwide = {
         '<Control-q>':'quit',
-        '<Control-w>':'next_view',
-        '<Control-d>':'delete_view',
+        '<Control-n>':'next_view',
+        '<Control-w>':'delete_view',
         '<Control-a>':'add_tags',
         '<Control-o>':'add_images',
         '<Control-f>':'add_folder',
         '<Control-r>':'remove_tags',
         '<Control-s>':'focus_sidebar',
-        '<Control-j>':'jump_to_tag'
+        '<Control-Shift-j>':'jump_to_tag',
+        '<Control-t>':'toggle_selection_tags'
 }
 
 # Bindings for the tagview on the sidebar
