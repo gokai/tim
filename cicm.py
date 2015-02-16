@@ -44,7 +44,7 @@ if __name__ == "__main__":
         'add_folder' : glue.add_directory,
         'remove_tags': glue.remove_tags_from_files,
         'jump_to_tag': lambda e: mainview.text_query('Jump to tag: ',
-            accept_func=lambda t, o: tview.jump_to(t))
+            accept_func=lambda t, o: tview.jump_to(t)),
         'focus_sidebar': lambda e: mainview.sidebar_views[0].widget.focus_set(),
         'toggle_selection_tags': glue.toggle_selection_tags,
     }
