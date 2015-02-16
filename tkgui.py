@@ -71,6 +71,7 @@ class Main(object):
         self.paned_win.add(view.widget, weight=5)
 
         view.widget.focus_set()
+        self.view_changed()
 
     def remove_view(self, view):
         self.views.remove(view)
@@ -81,6 +82,7 @@ class Main(object):
             self.paned_win.add(self.views[self.cur_view].widget, weight=5)
         else:
             self.sidebar_views['main'].widget.focus_set()
+        self.view_changed()
 
     def next_view(self):
         self.paned_win.forget(self.views[self.cur_view].widget)
@@ -90,6 +92,7 @@ class Main(object):
         new_view = self.views[self.cur_view]
         self.paned_win.add(new_view.widget, weight=5)
         new_view.widget.focus_set()
+        self.view_changed()
 
     def close_query(self):
         if self._query is not None:
@@ -125,6 +128,9 @@ class Main(object):
         self._menucolumn += 1
         entry.focus_set()
         self._query = frame
+
+    def view_changed(self):
+        self._root.event_generate('<<MainViewChanged>>')
 
     def display(self):
         self._root.mainloop()
