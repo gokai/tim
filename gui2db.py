@@ -140,6 +140,8 @@ class Gui2Db(object):
         return tags
 
     def show_selection_tags(self, event):
+        if len(self.main.views) == 0:
+            return
         selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
         if len(selection) == 0:
             return
@@ -156,7 +158,7 @@ class Gui2Db(object):
             self.show_selection_tags(event)
 
     def update_selection_tags(self, event):
-        if self._selection_tags_view is None:
+        if self._selection_tags_view is None or len(self.main.views) == 0:
             return
         selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
         if len(selection) == 0:
