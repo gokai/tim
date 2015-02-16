@@ -38,7 +38,7 @@ appwide = {
         '<Control-f>':'add_folder',
         '<Control-r>':'remove_tags',
         '<Control-s>':'focus_sidebar',
-        '<Control-j>':'jump_to_tag'
+        '<Control-Shift-j>':'jump_to_tag',
         '<Control-t>':'toggle_selection_tags'
 }
 
