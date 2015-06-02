@@ -5,9 +5,10 @@ import os
 import keybindings as kb
 from tkgraphics import Gallery
 
-class TagView(object):
+class NameView(object):
+    """Shows a treeview of unique names."""
 
-    def __init__(self, master, tags):
+    def __init__(self, master, names):
         self.widget = Treeview(master, columns=['name'])
         self.widget.column('name', width=50)
         self.widget['show'] = 'tree'
@@ -20,35 +21,34 @@ class TagView(object):
                 }
         kb.make_bindings(kb.tagview, actions, self.widget.bind)
         self._iids = dict()
-        self._tags = dict()
-        for tag in sorted(tags):
-            iid = self.widget.insert('', 'end', text=tag)
-            self._tags[iid] = tag
-            self._iids[tag] = iid
+        self._names = dict()
+        for name in sorted(names):
+            iid = self.widget.insert('', 'end', text=name)
+            self._names[iid] = name
+            self._iids[name] = iid
 
     def selection(self):
-        return [self._tags[iid] for iid in self.widget.selection()]
+        return [self._names[iid] for iid in self.widget.selection()]
 
     def edit(self):
-        self.widget.event_generate('<<TagViewEdit>>')
+        self.widget.event_generate('<<NameViewEdit>>')
 
     def search(self):
         if len(self.widget.selection()) == 0:
             self.widget.selection_add(self.widget.focus())
-        self.widget.event_generate('<<TagViewSearch>>')
+        self.widget.event_generate('<<NameViewSearch>>')
 
-    def append_tags(self, tags):
-        for tag in tags:
-            # no reason to show same tag twice
-            if tag not in self._tags.values():
-                iid = self.widget.insert('', 'end', text=tag)
-                self._tags[iid] = tag
-                self._iids[tag] = iid
+    def append(self, names):
+        for name in names:
+            if name not in self._names.values():
+                iid = self.widget.insert('', 'end', text=name)
+                self._names[iid] = name
+                self._iids[name] = iid
 
-    def delete(self, tag):
-        self.widget.delete(self._iids[tag])
-        del self._tags[self._iids[tag]]
-        del self._iids[tag]
+    def delete(self, name):
+        self.widget.delete(self._iids[name])
+        del self._names[self._iids[name]]
+        del self._iids[name]
 
     def _focus(self, iid):
         self.widget.focus(iid)
@@ -70,13 +70,34 @@ class TagView(object):
             prev_iid = iids[-1]
         self._focus(prev_iid)
 
-    def jump_to(self, tag):
+    def jump_to(self, name):
         try:
-            iid = self._iids[tag]
+            iid = self._iids[name]
             self._focus(iid)
         except KeyError:
             pass
 
-    def get_tag_list(self):
-        return tuple(self._tags.values())
+    def get_names(self):
+        return tuple(self._names.values())
         
+
+class TagView(NameView):
+
+    def __init__(self, master, tags):
+        super(TagView, self).__init__(master, tags)
+
+    def append_tags(self, tags):
+        tags = tuple(set(tags))
+        super(TagView, self).append(tags)
+
+    def get_tag_list(self):
+        return super(TagView, self).get_names()
+
+    def edit(self):
+        self.widget.event_generate('<<TagViewEdit>>')
+
+    def search(self):
+        if len(self.widget.selection()) == 0:
+            self.widget.selection_add(self.widget.focus())
+        self.widget.event_generate('<<TagViewSearch>>')
+
