@@ -2,7 +2,6 @@
 # A simple database class to handle tagging files.
 
 __license__ = "WTFPL"
-__version__ = "alpha-0.1"
 
 #TODO: return values?
 #TODO: a fix for os.path.commonprefix
@@ -282,14 +281,14 @@ class FileDatabase(object):
 
     def list_collections(self):
         """Returns a list of all collection data in the database."""
-        names = self._list_names("collections")
+        cursor = self.connection.cursor()
+        cursor.execute("""SELECT collections.name AS name, group_concat(tags.name) AS tags
+                        FROM collections, tags, collection_tags
+                        WHERE collections.id = collection_tags.collection_id AND
+                        tags.id = collection_tags.tag_id""")
         ret = list()
-        for n in names:
-            d = MyDict(name=n)
-            d.id = n
-            d.set_get_tags(lambda x: self.get_collection_tags(x))
-            d.set_get_fc(lambda x: len(self.list_files_in_collection(x)))
-            ret.append(d)
+        for row in cursor:
+            ret.append({'name':row[0], 'tags':row[1]})
         return ret
 
     def list_files_in_collection(self, collection):

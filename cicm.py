@@ -47,6 +47,7 @@ if __name__ == "__main__":
             accept_func=lambda t, o: tview.jump_to(t)),
         'focus_sidebar': lambda e: mainview.sidebar_views[0].widget.focus_set(),
         'toggle_selection_tags': glue.toggle_selection_tags,
+        'toggle_collections': glue.toggle_collections,
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
     buttons = {

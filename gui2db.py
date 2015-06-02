@@ -7,7 +7,7 @@ from tkinter.simpledialog import askstring
 
 from tkgraphics import gallery_with_slideshow
 from dialog import ListDialog
-from tagview import TagView
+from tagview import TagView, NameView
 
 class Gui2Db(object):
     def __init__(self, db, main):
@@ -138,7 +138,7 @@ class Gui2Db(object):
                 tags.intersection_update(ftags)
         return tags
 
-    def show_selection_tags(self, event):
+    def show_selection_tags(self, event=None):
         if len(self.main.views) == 0:
             return
         selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
@@ -148,11 +148,14 @@ class Gui2Db(object):
         view = TagView(self.main.sidebar, list(tags))
         self.main.add_sidebar(view, 'selection_tags')
 
-    def toggle_selection_tags(self, event):
-        if self.main.sidebar_count > 1:
-            self.main.remove_sidebar_view('selection_tags')
+    def _toggle(self, name, show):
+        if self.main.get_sidebar_view(name) is not None:
+            self.main.remove_sidebar_view(name)
         else:
-            self.show_selection_tags(event)
+            show()
+
+    def toggle_selection_tags(self, event):
+        self._toggle('selection_tags', self.show_selection_tags)
 
     def update_selection_tags(self, event):
         if (self.main.get_sidebar_view('selection_tags') is None
@@ -187,4 +190,14 @@ class Gui2Db(object):
         if name == "" or not askyesno('Remove collection: {}'.format(name)):
             return
         self.db.remove_collection(name)
+
+    def show_collections(self):
+        colls = self.db.list_collections()
+        if len(colls) == 0:
+            return
+        view = NameView(self.main.sidebar, [c['name'] for c in colls])
+        self.main.add_sidebar(view, 'collections')
+
+    def toggle_collections(self, event):
+        self._toggle('collections', self.show_collections)
 

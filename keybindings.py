@@ -39,7 +39,8 @@ appwide = {
         '<Control-r>':'remove_tags',
         '<Control-s>':'focus_sidebar',
         '<Control-Shift-j>':'jump_to_tag',
-        '<Control-t>':'toggle_selection_tags'
+        '<Control-t>':'toggle_selection_tags',
+        '<Alt-c>':'toggle_collections'
 }
 
 # Bindings for the tagview on the sidebar
