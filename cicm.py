@@ -52,6 +52,7 @@ if __name__ == "__main__":
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
     buttons = {
             'Add collection': glue.add_collection,
+            'Remove collection': glue.remove_collection,
             'Remove deleted': glue.remove_deleted_files,
     }
     for label in buttons:

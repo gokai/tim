@@ -184,12 +184,13 @@ class Gui2Db(object):
             self.db.add_collection(name, tags)
         self.main.text_query('Collection name: ', '', add_callback)
 
-    def remove_collection(self, event):
-        name = event.widget.get()
-        name.strip()
-        if name == "" or not askyesno('Remove collection: {}'.format(name)):
-            return
-        self.db.remove_collection(name)
+    def remove_collection(self):
+        def remove_callback(name, orig):
+            name = name.strip()
+            if name == "" or not askyesno('Remove collection: {}'.format(name)):
+                return
+            self.db.remove_collection(name)
+        self.main.text_query('Remove collection: ', '', remove_callback)
 
     def show_collections(self):
         colls = self.db.list_collections()
