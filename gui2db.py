@@ -13,10 +13,9 @@ class Gui2Db(object):
     def __init__(self, db, main):
         self.db = db
         self.main = main
-        self._selection_tags_view = None
 
     def search(self, event):
-        tags = self.main.get_sidebar_view(event.widget).selection()
+        tags = self.main.active_sidebar().selection()
         files = self.db.search_by_tags(tags)
         paths = [os.path.join(d['path'], d['name']) for d in files]
         self.main.new_view(gallery_with_slideshow(self.main.root, paths, self.main.new_view))
@@ -34,7 +33,7 @@ class Gui2Db(object):
         for fid_key in file_ids:
             self.db.add_tags_to_file(file_ids[fid_key], tag_list)
         self.main.close_query()
-        self.main.get_sidebar_view('main').append_tags(tag_list)
+        self.main.get_sidebar_view('main_tags').append_tags(tag_list)
 
     def ids_from_gallery(self, gallery):
         paths = gallery.selection()
@@ -50,7 +49,7 @@ class Gui2Db(object):
         else:
             self.db.rename_tags(((old_name, new_name), ))
         self.main.close_query()
-        tagview = self.main.get_sidebar_view('main')
+        tagview = self.main.get_sidebar_view('main_tags')
         tagview.delete(old_name)
         tagview.append_tags((new_name, ))
 
@@ -61,7 +60,7 @@ class Gui2Db(object):
             self.add_tags_from_entry(event)
 
     def query_tags(self):
-        selected_tags = self.main.get_sidebar_view('main').selection()
+        selected_tags = self.main.get_sidebar_view('main_tags').selection()
         new_tags = list()
         add_sel_tags = False
         tag_string = askstring('New tags?', 'Give tags to new files:')
@@ -89,7 +88,7 @@ class Gui2Db(object):
             else:
                 fileinfos.append({'name':name, 'tags':tag_list})
         self.db.add_files(fileinfos)
-        self.main.get_sidebar_view('main').append_tags(tag_list)
+        self.main.get_sidebar_view('main_tags').append_tags(tag_list)
 
     def add_directory(self, event):
         directory = askdirectory()
@@ -103,7 +102,7 @@ class Gui2Db(object):
             if not os.path.isdir(path) and f_type[0] is not None and 'image' in f_type[0]:
                 fileinfos.append({'name':path, 'tags':tag_list})
         self.db.add_files(fileinfos)
-        self.main.get_sidebar_view('main').append_tags(tag_list)
+        self.main.get_sidebar_view('main_tags').append_tags(tag_list)
 
     def _remove_tags(self, ids, tags):
         for key in ids:
@@ -147,29 +146,45 @@ class Gui2Db(object):
             return
         tags = self._get_tags_from_db(selection)
         view = TagView(self.main.sidebar, list(tags))
-        self.main.add_sidebar(view)
-        self._selection_tags_view = view
+        self.main.add_sidebar(view, 'selection_tags')
 
     def toggle_selection_tags(self, event):
         if self.main.sidebar_count > 1:
-            self.main.remove_sidebar_view(self._selection_tags_view)
-            self._selection_tags_view = None
+            self.main.remove_sidebar_view('selection_tags')
         else:
             self.show_selection_tags(event)
 
     def update_selection_tags(self, event):
-        if self._selection_tags_view is None or len(self.main.views) == 0:
+        if (self.main.get_sidebar_view('selection_tags') is None
+           or len(self.main.views) == 0):
             return
         selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
         if len(selection) == 0:
-            self.main.remove_sidebar_view(self._selection_tags_view)
-            self._selection_tags_view = None
+            self.main.remove_sidebar_view('selection_tags')
             return
-        cur_tags = set(self._selection_tags_view.get_tag_list())
+        tagview = self.main.get_sidebar_view('selection_tags')
+        cur_tags = set(tagview.get_tag_list())
         new_tags = self._get_tags_from_db(selection)
         add_tags = new_tags.difference(cur_tags)
         del_tags = cur_tags.difference(new_tags)
         for tag in del_tags:
-            self._selection_tags_view.delete(tag)
-        self._selection_tags_view.append_tags(add_tags)
+            tagview.delete(tag)
+        tagview.append_tags(add_tags)
+
+    def add_collection(self):
+        tagview = self.main.get_sidebar_view('main_tags')
+        tags = tagview.selection()
+        def add_callback(name, orig):
+            name = name.strip()
+            if name == "" or len(tags) == 0:
+                return 
+            self.db.add_collection(name, tags)
+        self.main.text_query('Collection name: ', '', add_callback)
+
+    def remove_collection(self, event):
+        name = event.widget.get()
+        name.strip()
+        if name == "" or not askyesno('Remove collection: {}'.format(name)):
+            return
+        self.db.remove_collection(name)
 

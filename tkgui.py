@@ -47,21 +47,30 @@ class Main(object):
         button.grid(row=0, column=self._menucolumn)
         self._menucolumn += 1
 
-    def add_sidebar(self, view):
-        self.sidebar_views[str(view.widget)] = view
+    def add_sidebar(self, view, name):
+        self.sidebar_views[name] = view
         self.sidebar.add(view.widget, weight=1)
         view.widget.focus_set()
         self.sidebar_count += 1
-        if 'main' not in self.sidebar_views:
+        if self.sidebar_count == 1:
             self.sidebar_views['main'] = view
 
-    def remove_sidebar_view(self, view):
-        self.sidebar.forget(view.widget)
+    def remove_sidebar_view(self, name):
+        self.sidebar.forget(self.sidebar_views[name].widget)
         self.sidebar_count -= 1
-        del self.sidebar_views[str(view.widget)]
+        del self.sidebar_views[name]
+        if self.sidebar_count == 0:
+            del self.sidebar_views['main']
 
-    def get_sidebar_view(self, widget):
-        return self.sidebar_views[str(widget)]
+    def active_sidebar(self):
+        widget = self._root.focus_lastfor()
+        for v in self.sidebar_views.values():
+            if v.widget == widget:
+                return v
+        return None
+
+    def get_sidebar_view(self, name):
+        return self.sidebar_views.get(name)
 
     def new_view(self, view):
         self.views.append(view)
@@ -99,6 +108,7 @@ class Main(object):
             self._query.event_generate('<<MainQueryClose>>')
             self._query.destroy()
             self._query = None
+            self._accept_func = None
             self._menucolumn -= 1
 
     def accept_query(self, event):

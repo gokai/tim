@@ -50,6 +50,7 @@ if __name__ == "__main__":
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
     buttons = {
+            'Add collection': glue.add_collection,
             'Remove deleted': glue.remove_deleted_files,
     }
     for label in buttons:
@@ -66,6 +67,6 @@ if __name__ == "__main__":
     mainview.root.bind_all('<<SlideShowPrev>>', glue.update_selection_tags)
     mainview.root.bind_all('<<MainViewChanged>>', glue.update_selection_tags)
 
-    mainview.add_sidebar(tview)
+    mainview.add_sidebar(tview, 'main_tags')
     mainview.display()
 
