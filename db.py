@@ -252,6 +252,17 @@ class FileDatabase(object):
         self.create_tags(tags)
         self.connection.commit()
         self.add_tags_to_collection(name, tags)
+
+    def add_files_to_collection(self, collection, files):
+        tags = self.get_collection_tags(collection)
+        tag_ids = self.get_tag_ids(tags)
+        cursor = self.connection.cursor()
+        data = []
+        for f in files:
+            for tid in tag_ids.values():
+                data.append((f['id'], tid))
+        cursor.executemany("INSERT INTO file_tags(file_id, tag_id) VALUES(?, ?)", data)
+        self.connection.commit()
     
     def remove_collection(self, name):
         cursor = self.connection.cursor()
@@ -288,7 +299,8 @@ class FileDatabase(object):
                         tags.id = collection_tags.tag_id""")
         ret = list()
         for row in cursor:
-            ret.append({'name':row[0], 'tags':row[1]})
+            if row[0] is not None:
+                ret.append({'name':row[0], 'tags':row[1]})
         return ret
 
     def list_files_in_collection(self, collection):
