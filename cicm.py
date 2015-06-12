@@ -19,6 +19,7 @@ from gui2db import Gui2Db
 from tkgui import Main
 from tkgraphics import gallery_with_slideshow
 from tagview import TagView
+from helpview import HelpView
 
 import keybindings
 
@@ -48,6 +49,7 @@ if __name__ == "__main__":
         'focus_sidebar': lambda e: mainview.sidebar_views[0].widget.focus_set(),
         'toggle_selection_tags': glue.toggle_selection_tags,
         'toggle_collections': glue.toggle_collections,
+        'help': lambda e: mainview.new_view(HelpView(mainview.root)),
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
     buttons = {

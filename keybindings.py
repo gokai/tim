@@ -18,14 +18,14 @@ gallery = {
         '<Left>':'cursor_left',
         '<Right>':'cursor_right',
         '<Control-c>':'clear_selection',
-        '<Return>':'slide'
+        '<Return>':'slide',
 }
 
 # Full view bindings
 slideshow = {
         'n':'next',
         'p':'prev',
-        'r':'reload'
+        'r':'reload',
 }
 
 # Bindings global to the application
@@ -40,7 +40,8 @@ appwide = {
         '<Control-s>':'focus_sidebar',
         '<Control-Shift-j>':'jump_to_tag',
         '<Control-t>':'toggle_selection_tags',
-        '<Alt-c>':'toggle_collections'
+        '<Control-h>':'help',
+        '<Alt-c>':'toggle_collections',
 }
 
 # Bindings for the tagview on the sidebar
@@ -54,14 +55,14 @@ tagview = {
         '<Return>':'search',
         '<Up>':'focus_prev',
         '<Down>':'focus_next',
+        '<Button-3>':'search',
 }
 
 # Bindings for text entries
 text_query = {
         '<Return>':'accept',
-        '<Escape>':'cancel'
+        '<Escape>':'cancel',
 }
-
 
 def make_bindings(bindings, actions, bind_func):
     """Creates bindings defined in bindings with bind_func.
