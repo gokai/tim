@@ -29,11 +29,12 @@ class Gui2Db(object):
         entry = event.widget
         tag_string = entry.get()
         tag_list = tag_string.split(',')
+        tags = [t.strip() for t in tag_list]
         file_ids = self.ids_from_gallery(self.main.views[self.main.cur_view])
         for fid_key in file_ids:
-            self.db.add_tags_to_file(file_ids[fid_key], tag_list)
+            self.db.add_tags_to_file(file_ids[fid_key], tags)
         self.main.close_query()
-        self.main.get_sidebar_view('main_tags').append_tags(tag_list)
+        self.main.get_sidebar_view('main_tags').append_tags(tags)
 
     def ids_from_gallery(self, gallery):
         paths = gallery.selection()
@@ -44,6 +45,7 @@ class Gui2Db(object):
         entry = event.widget
         new_name = entry.get()
         old_name = entry.original_value
+        new_name = new_name.strip()
         if new_name in self.db.list_tags():
             self.db.join_tags(new_name, old_name)
         else:

@@ -117,7 +117,7 @@ class Main(object):
                 self._accept_func(event.widget.get(), event.widget.original_value)
                 self.close_query()
             else:
-                widget.event_generate('<<MainQueryAccept>>')
+                event.widget.event_generate('<<MainQueryAccept>>')
 
     def text_query(self, query_lable, original_text=None, accept_func=None):
         frame = Frame(self.menubar)
