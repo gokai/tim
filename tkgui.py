@@ -6,7 +6,6 @@ import mimetypes
 from tkinter import Tk, Menu, N, S, W, E, HORIZONTAL, Toplevel, StringVar
 from tkinter.ttk import PanedWindow, Entry, Label, Frame, Button
 
-from db import FileDatabase
 from tkgraphics import gallery_with_slideshow
 from tagview import TagView
 from gui2db import Gui2Db
@@ -32,7 +31,6 @@ class Main(object):
         self._menucolumn = 1
         self.views = list()
         self.cur_view = 0
-        self.delete_current_view = lambda e: self.remove_view(self.views[self.cur_view]) 
         self.paned_win.grid(row=1, column=0, sticky=(N, S, W, E))
         self._root = root
         self._query = None
@@ -72,6 +70,14 @@ class Main(object):
     def get_sidebar_view(self, name):
         return self.sidebar_views.get(name)
 
+    def focus_sidebar(self):
+        if 'main' in self.sidebar_views.keys():
+            self.sidebar_views['main'].widget.focus_set()
+
+    def focus_main_view(self):
+        if len(self.views) > self.cur_view:
+            self.views[self.cur_view].focus_set()
+
     def new_view(self, view):
         self.views.append(view)
         if len(self.views) > 1:
@@ -92,6 +98,10 @@ class Main(object):
         else:
             self.sidebar_views['main'].widget.focus_set()
         self.view_changed()
+
+    def delete_current_view(self, event):
+        if len(self.views) > self.cur_view + 1:
+            self.remove_view(self.views[self.cur_view])
 
     def next_view(self):
         self.paned_win.forget(self.views[self.cur_view].widget)
@@ -147,30 +157,4 @@ class Main(object):
 
     def quit(self):
         self._root.destroy()
-
-if __name__ == "__main__":
-    db = FileDatabase('winexperiment.sqlite')
-    gui = Main()
-
-    li = db.search_by_tags(['abstract'])[:100]
-
-    glue = Gui2Db(db, gui)
-
-    tags = db.list_tags()
-    view = TagView(gui, tags)
-    view.widget.bind('<<TagViewSearch>>', glue.search)
-    view.widget.bind('<<TagViewEdit>>',
-            lambda e: gui.text_query('Edit tag: ', e.widget.selection()[0]))
-
-    paths = [os.path.join(d['path'], d['name']) for d in li]
-    gal = gallery_with_slideshow(gui.root, paths, gui.new_view)
-    gal.widget.bind('<Control-a>', lambda e: glue.add_tags_from_tagview(e, view))
-
-    gui.root.bind_all('<Control-i>', lambda e: gui.text_query('Add tags: '))
-    gui.root.bind_all('<<MainQueryAccept>>', glue.add_or_rename_tags)
-    gui.root.bind_all('<Control-o>', glue.add_files)
-    gui.root.bind_all('<Control-p>', glue.add_directory)
-    gui.add_sidebar(view)
-    gui.new_view(gal)
-    gui.display()
 
