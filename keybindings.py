@@ -34,13 +34,15 @@ appwide = {
         '<Control-n>':'next_view',
         '<Control-w>':'delete_view',
         '<Control-a>':'add_tags',
+        '<Control-d>':'add_selected_tags',
         '<Control-o>':'add_images',
         '<Control-f>':'add_folder',
         '<Control-r>':'remove_tags',
         '<Control-s>':'focus_sidebar',
-        '<Control-Shift-j>':'jump_to_tag',
+        '<Control-m>':'focus_main_view',
+        '<Control-Shift-J>':'jump_to_tag',
         '<Control-t>':'toggle_selection_tags',
-        '<Control-h>':'help',
+        '<Control-Shift-H>':'help',
         '<Alt-c>':'toggle_collections',
 }
 

@@ -21,9 +21,10 @@ class Gui2Db(object):
         self.main.new_view(gallery_with_slideshow(self.main.root, paths, self.main.new_view))
 
     def add_tags_from_tagview(self, event, tagview):
-        db_ids = self.ids_from_gallery(event.widget)
+        db_ids = self.ids_from_gallery(self.main.get_current_view())
         for id_key in db_ids:
             self.db.add_tags_to_file(db_ids[id_key], tagview.selection())
+        self.update_selection_tags(event)
 
     def add_tags_from_entry(self, event):
         entry = event.widget
@@ -35,6 +36,7 @@ class Gui2Db(object):
             self.db.add_tags_to_file(file_ids[fid_key], tags)
         self.main.close_query()
         self.main.get_sidebar_view('main_tags').append_tags(tags)
+        self.update_selection_tags(event)
 
     def ids_from_gallery(self, gallery):
         paths = gallery.selection()
@@ -54,6 +56,7 @@ class Gui2Db(object):
         tagview = self.main.get_sidebar_view('main_tags')
         tagview.delete(old_name)
         tagview.append_tags((new_name, ))
+        self.update_selection_tags(event)
 
     def add_or_rename_tags(self, event):
         if event.widget.original_value is not None:
@@ -161,9 +164,9 @@ class Gui2Db(object):
 
     def update_selection_tags(self, event):
         if (self.main.get_sidebar_view('selection_tags') is None
-           or len(self.main.views) == 0):
+           or self.main.get_current_view() is None):
             return
-        selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
+        selection = self.ids_from_gallery(self.main.get_current_view())
         if len(selection) == 0:
             self.main.remove_sidebar_view('selection_tags')
             return

@@ -4,7 +4,7 @@ import subprocess
 import mimetypes
 
 from tkinter import Tk, Menu, N, S, W, E, HORIZONTAL, Toplevel, StringVar
-from tkinter.ttk import PanedWindow, Entry, Label, Frame, Button
+from tkinter.ttk import PanedWindow, Entry, Label, Frame, Button, Notebook
 
 from tkgraphics import gallery_with_slideshow
 from tagview import TagView
@@ -16,29 +16,39 @@ class Main(object):
 
     def __init__(self):
         root = Tk()
-        self.paned_win = PanedWindow(root, orient=HORIZONTAL)
-        self.root = self.paned_win
         root.title('GICM')
         root.focus_set()
         root.rowconfigure(0, weight=0)
         root.columnconfigure(0, weight=1)
         root.rowconfigure(1, weight=1)
+        self._root = root
+
         self.menubar = Frame(root)
         self.menubar.grid(row=0, column=0, sticky=(W, E))
         self.menubar['takefocus'] = False
+
         quit_button = Button(self.menubar, text='Quit', command=self.quit)
         quit_button.grid(row=0, column=0)
+
         self._menucolumn = 1
         self.views = list()
         self.cur_view = 0
+
+        self.paned_win = PanedWindow(root, orient=HORIZONTAL)
         self.paned_win.grid(row=1, column=0, sticky=(N, S, W, E))
-        self._root = root
+
         self._query = None
         self._accept_func = None
+
         self.sidebar_views = dict()
         self.sidebar_count = 0
-        self.sidebar = PanedWindow(self.root)
-        self.root.add(self.sidebar, weight=1)
+        self.sidebar = PanedWindow(self.paned_win)
+        self.paned_win.add(self.sidebar, weight=1)
+        
+        self.tabs = Notebook(self.paned_win)
+        self.tabs.enable_traversal()
+        self.paned_win.add(self.tabs, weight=5)
+        self.root = self.tabs
 
     def add_menubutton(self, label, action):
         button = Button(self.menubar, text=label, command=action)
@@ -76,31 +86,31 @@ class Main(object):
 
     def focus_main_view(self):
         if len(self.views) > self.cur_view:
-            self.views[self.cur_view].focus_set()
+            self.views[self.cur_view].widget.focus_set()
 
     def new_view(self, view):
         self.views.append(view)
-        if len(self.views) > 1:
-            self.paned_win.forget(self.views[self.cur_view].widget)
         self.cur_view = len(self.views) - 1
-        self.paned_win.add(view.widget, weight=5)
+        self.tabs.add(view.widget, text=" {}.".format(self.cur_view))
+        self.tabs.select(self.cur_view)
 
         view.widget.focus_set()
         self.view_changed()
 
     def remove_view(self, view):
         self.views.remove(view)
-        self.paned_win.forget(view.widget)
+        self.tabs.forget(view.widget)
         self.cur_view -= 1
         if len(self.views) >= 1:
             self.views[-1].widget.focus_set()
-            self.paned_win.add(self.views[self.cur_view].widget, weight=5)
+            self.tabs.select(self.cur_view)
+            self.views[self.cur_view].widget.focus_set()
         else:
             self.sidebar_views['main'].widget.focus_set()
         self.view_changed()
 
     def delete_current_view(self, event):
-        if len(self.views) > self.cur_view + 1:
+        if len(self.views) > self.cur_view:
             self.remove_view(self.views[self.cur_view])
 
     def next_view(self):
@@ -148,6 +158,12 @@ class Main(object):
         self._menucolumn += 1
         entry.focus_set()
         self._query = frame
+
+    def get_current_view(self):
+        if len(self.views) > self.cur_view:
+            return self.views[self.cur_view]
+        else:
+            return None
 
     def view_changed(self):
         self._root.event_generate('<<MainViewChanged>>')
