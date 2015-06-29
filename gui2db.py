@@ -96,16 +96,17 @@ class Gui2Db(object):
         self.main.get_sidebar_view('main_tags').append_tags(tag_list)
 
     def add_directory(self, event):
-        directory = askdirectory()
+        directory = askdirectory(title="Select a directory to add.")
         if len(directory) == 0:
             return
         fileinfos = list()
         tag_list = self.query_tags()
-        for name in os.listdir(directory):
-            path = os.path.join(directory, name)
-            f_type = guess_type(path)
-            if not os.path.isdir(path) and f_type[0] is not None and 'image' in f_type[0]:
-                fileinfos.append({'name':path, 'tags':tag_list})
+        for root, directories, filenames in os.walk(directory):
+            for name in filenames:
+                path = os.path.join(root, name)
+                f_type = guess_type(path)
+                if f_type[0] is not None and 'image' in f_type[0]:
+                    fileinfos.append({'name':path, 'tags':tag_list})
         self.db.add_files(fileinfos)
         self.main.get_sidebar_view('main_tags').append_tags(tag_list)
 
