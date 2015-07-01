@@ -170,27 +170,29 @@ class FileDatabase(object):
         cursor.executemany("DELETE FROM files WHERE id = ?", [(i,) for i in idict.values()])
         self.connection.commit()
 
-    def add_tags_to_file(self, item, tags):
-        """Adds tags to the file identified by item.
+    def add_tags_to_files(self, items, tags):
+        """Adds tags to the files identified by item.
            tags  iterable of the tags.
-           item  id of the file from get_file_ids."""
+           items  ids of the file from get_file_ids."""
         cursor = self.connection.cursor()
         self.create_tags(tags)
-        cursor.execute("BEGIN")
         tag_ids = self.get_tag_ids(tags)
-        cursor.executemany("INSERT INTO file_tags(file_id, tag_id) VALUES(?, ?)", 
-                [(item, tag_ids[key]) for key in tag_ids.keys()])
+        cursor.execute("BEGIN")
+        for item in items:
+            cursor.executemany("INSERT INTO file_tags(file_id, tag_id) VALUES(?, ?)", 
+                    [(item, tag_ids[key]) for key in tag_ids.keys()])
         self.connection.commit()
 
-    def remove_tags_from_file(self, item, tags):
+    def remove_tags_from_files(self, items, tags):
         """Removes tags from a file.
-           item  id of the item
+           items  ids of the item
            tags  an iterable of tag names"""
         cursor = self.connection.cursor()
         tag_ids = self.get_tag_ids(tags)
         cursor.execute("BEGIN")
-        cursor.executemany("DELETE FROM file_tags WHERE file_id = ? AND tag_id = ?",
-                ((item, tag_ids[key]) for key in tag_ids.keys()))
+        for item in items:
+            cursor.executemany("DELETE FROM file_tags WHERE file_id = ? AND tag_id = ?",
+                    ((item, tag_ids[key]) for key in tag_ids.keys()))
         self.connection.commit()
 
     def search_by_name(self, search_string):

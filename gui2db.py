@@ -22,8 +22,7 @@ class Gui2Db(object):
 
     def add_tags_from_tagview(self, event, tagview):
         db_ids = self.ids_from_gallery(self.main.get_current_view())
-        for id_key in db_ids:
-            self.db.add_tags_to_file(db_ids[id_key], tagview.selection())
+        self.db.add_tags_to_files(sorted(db_ids.values()), tagview.selection())
         self.update_selection_tags(event)
 
     def add_tags_from_entry(self, event):
@@ -32,8 +31,7 @@ class Gui2Db(object):
         tag_list = tag_string.split(',')
         tags = [t.strip() for t in tag_list]
         file_ids = self.ids_from_gallery(self.main.views[self.main.cur_view])
-        for fid_key in file_ids:
-            self.db.add_tags_to_file(file_ids[fid_key], tags)
+        self.db.add_tags_to_files(sorted(file_ids.values()), tags)
         self.main.close_query()
         self.main.get_sidebar_view('main_tags').append_tags(tags)
         self.update_selection_tags(event)
@@ -111,8 +109,7 @@ class Gui2Db(object):
         self.main.get_sidebar_view('main_tags').append_tags(tag_list)
 
     def _remove_tags(self, ids, tags):
-        for key in ids:
-            self.db.remove_tags_from_file(ids[key], tags)
+        self.db.remove_tags_from_file(sorted(ids.values()), tags)
 
     def remove_tags_from_files(self, event):
         view = self.main.views[self.main.cur_view]
