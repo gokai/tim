@@ -5,6 +5,7 @@ import os
 import sys
 import warnings
 from math import floor
+from collections import namedtuple
 
 try:
     from Tkinter import *
@@ -17,6 +18,8 @@ from PIL import Image
 from PIL.ImageTk import PhotoImage
 
 import keybindings as kb
+
+Cursor = namedtuple('Cursor', ['column', 'row', 'prev_item'])
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
@@ -142,7 +145,7 @@ class Gallery(object):
         self.load_pos = 0
         self.row = 0
         self.column = 0
-        self.cursor = (0, 0, -1)
+        self.cursor = Cursor(-1,-1,-1)
         self.max_columns = self.calculate_max_columns()
         self.widget.after(100, self.load_next)
 
@@ -164,7 +167,7 @@ class Gallery(object):
         self._selection.clear()
 
     def button_callback(self, event, item, column, row):
-        prev_item = self.photos[self.cursor[2]]
+        prev_item = self.photos[self.cursor.prev_item]
         self.remove_cursor(prev_item, event.state)
         self.set_cursor(item, column, row)
 
@@ -189,8 +192,8 @@ class Gallery(object):
             photo = self.photos[self.repos]
             new_x, new_y = self.calculate_pos(self.repos_col, self.repos_row)
             self.widget.coords(photo.cid, new_x, new_y)
-            if self.repos == self.cursor[2]:
-                self.cursor = (self.repos_col, self.repos_row, self.repos)
+            if self.repos == self.cursor.prev_item:
+                self.cursor = Cursor(self.repos_col, self.repos_row, self.repos)
             col, row = self.repos_col, self.repos_row
             self.widget.tag_bind(photo.cid, '<Button-1>',
                     lambda e: self.button_callback(e, photo, col, row))
@@ -261,36 +264,36 @@ class Gallery(object):
         return (row, column)
 
     def cursor_up(self, e):
-        column = self.cursor[0]
-        row = self.cursor[1] - 1
+        row = self.cursor.row - 1
+        column = self.cursor.column
         if row < 0:
             row = 0
         self.move_cursor(column, row, e.state)
 
     def cursor_down(self, e):
-        row = self.cursor[1] + 1
-        column = self.cursor[0]
+        row = self.cursor.row + 1
+        column = self.cursor.column
         self.move_cursor(column, row, e.state)
 
     def cursor_right(self, e):
-        row = self.cursor[1]
-        column = self.cursor[0] + 1
+        row = self.cursor.row
+        column = self.cursor.column + 1
         if column >= self.max_columns:
             column = 0
             row += 1
         self.move_cursor(column, row, e.state)
 
     def cursor_left(self, e):
-        row = self.cursor[1]
-        column = self.cursor[0] - 1
+        row = self.cursor.row
+        column = self.cursor.column - 1
         if column < 0:
             column = self.max_columns - 1
             row -= 1
         self.move_cursor(column, row, e.state)
 
     def move_cursor(self, column, row, state = 0x0):
-        prev_item = self.photos[self.cursor[2]]
-        if self.cursor[2] != -1:
+        prev_item = self.photos[self.cursor.prev_item]
+        if self.cursor.prev_item != -1:
             self.remove_cursor(prev_item, state)
         new_index = self.cursor_to_index(row, column)
         if new_index >= len(self.photos):
@@ -304,7 +307,7 @@ class Gallery(object):
 
     def set_cursor(self, item, column, row, index=None):
         self.set_state(item, 'active')
-        self.cursor = (column, row, index or row*self.max_columns + column)
+        self.cursor = Cursor(column, row, index or row*self.max_columns + column)
         self.widget.addtag_withtag('selected', item.cid)
         self.view_item(item)
         self._selection_add(item)
