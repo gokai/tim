@@ -354,38 +354,3 @@ class Gallery(object):
         if bottom > max_visible_y or top < min_visible_y:
             self.widget.yview_moveto((top - self.thumb_h) / max_y)
 
-
-
-if __name__ == "__main__":
-    from db import FileDatabase
-
-    db = FileDatabase('master.sqlite')
-    li = db.search_by_tags(['tausta'])
-    li = db.get_full_paths(li)
-    tk = Tk()
-
-    tk.bind('<Control-q>', lambda e: tk.quit())
-    tk.rowconfigure(0, weight=1)
-    tk.columnconfigure(0, weight=1)
-    if sys.argv[1] == 'slide':
-        ss = SlideShow(tk, li)
-        ss.widget.focus_set()
-        ss.widget.grid(column=0, row=0, sticky=(N, W, E, S))
-    elif sys.argv[1] == 'gallery':
-        g = Gallery(tk, li, (180,180), lambda l: show(l))
-        def show(li):
-            ss = SlideShow(tk, [g.get_path(i) for i in li])
-            ss.widget.focus_set()
-            ss.widget.winfo_width = g.widget.winfo_width
-            ss.widget.winfo_height = g.widget.winfo_height
-            ss.widget.grid(column=0, row=0)
-            ss.widget.bind('<q>', lambda e: ss.widget.destroy())
-            ss.widget.bind('<Destroy>', lambda e: g.widget.focus_set())
-
-        g.widget.grid(column=0, row=0, sticky=(N, W, E, S))
-        g.widget.focus_set()
-        sb = Scrollbar(tk, command = g.widget.yview)
-        g.widget['yscrollcommand'] = sb.set
-        sb.grid(column=1, row=0, sticky=(N,S))
-    tk.mainloop()
-
