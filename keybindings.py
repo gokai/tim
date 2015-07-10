@@ -19,6 +19,7 @@ gallery = {
         '<Right>':'cursor_right',
         '<Control-c>':'clear_selection',
         '<Return>':'slide',
+        'm':'load_more',
 }
 
 # Full view bindings

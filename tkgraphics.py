@@ -3,6 +3,7 @@ __author__  = "tachara (tortured.flame@gmail.com)"
 
 import os
 import sys
+import warnings
 from math import floor
 
 try:
@@ -24,6 +25,9 @@ def gallery_with_slideshow(root, paths, new_view):
         lambda s: new_view(SlideShow(root, s)))
     return gal
 
+# Change DecompressionBombWarning in to an error
+# allows better handling.
+warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 class SlideShow(object):
 
@@ -98,6 +102,7 @@ class SlideShow(object):
 
     
 class Gallery(object):
+    LIMIT = 1000
 
     def __init__(self, root, paths, thumb_size, activate_func):
         """thumb_size = (w, h)"""
@@ -111,6 +116,7 @@ class Gallery(object):
         self.make_bindings()
         self.activate_func = activate_func
         self.widget.configure(takefocus=1)
+        self.loaded = 0
 
     def make_bindings(self):
         self.widget.bind('<Expose>', lambda e: self.reload())
@@ -119,7 +125,8 @@ class Gallery(object):
                 'cursor_up':self.cursor_up,
                 'cursor_right':self.cursor_right,
                 'cursor_left':self.cursor_left,
-                'cursor_down':self.cursor_down,}
+                'cursor_down':self.cursor_down,
+                'load_more':lambda e: self.continue_loading()}
         self.widget.bind('<Button-4>', self.scroll)
         self.widget.bind('<Button-5>', self.scroll)
         self.widget.bind('<MouseWheel>', self.scroll)
@@ -217,18 +224,33 @@ class Gallery(object):
             photo.index = self.load_pos
             self.widget.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
             self.widget.tag_bind(photo.cid, '<Double-Button-1>', self.activate)
-            self.widget.addtag_withtag(photo.cid, 'photo')
+            self.widget.addtag_withtag('photo', photo.cid)
             self.column += 1
+            self.loaded += 1
         except OSError:
-            print(self.paths[self.load_pos])
             self.load_pos += 1
+        except Image.DecompressionBombWarning:
+            self.lead_pos += 1
+
         if self.column >= self.max_columns:
             self.row += 1
             self.column = 0
-        if self.load_pos < len(self.paths) - 1:
+        if self.load_pos < len(self.paths) - 1 and self.loaded < self.LIMIT:
             self.load_pos += 1
             self.widget.after_idle(self.load_next)
+        elif self.loaded >= self.LIMIT:
+            self.loaded = 0
+            x, y = self.calculate_pos(self.column, self.row)
+            button = Button(self.widget, text='Load More', command=self.continue_loading)
+            cid = self.widget.create_window(x, y, window=button)
+            self.widget.addtag_withtag('loadbutton', cid)
         self.widget['scrollregion'] = self.widget.bbox('all')
+
+    def continue_loading(self):
+        if self.load_pos < len(self.paths) - 1:
+            self.load_pos += 1
+            self.widget.delete('loadbutton')
+            self.widget.after_idle(self.load_next)
 
     def cursor_up(self, e):
         column = self.cursor[0]
