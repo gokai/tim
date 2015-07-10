@@ -252,6 +252,14 @@ class Gallery(object):
             self.widget.delete('loadbutton')
             self.widget.after_idle(self.load_next)
 
+    def cursor_to_index(self, row, column):
+        return row * self.max_columns + column 
+
+    def max_cursor_position(self):
+        row = floor((len(self.photos) - 1)/self.max_columns)
+        column = (len(self.photos) - 1 - row * self.max_columns)
+        return (row, column)
+
     def cursor_up(self, e):
         column = self.cursor[0]
         row = self.cursor[1] - 1
@@ -262,15 +270,12 @@ class Gallery(object):
     def cursor_down(self, e):
         row = self.cursor[1] + 1
         column = self.cursor[0]
-        if row * self.max_columns + column >= len(self.photos):
-            row = floor((len(self.photos) - 1)/self.max_columns)
-            column = (len(self.photos) - 1 - row * self.max_columns)
         self.move_cursor(column, row, e.state)
 
     def cursor_right(self, e):
         row = self.cursor[1]
         column = self.cursor[0] + 1
-        if column > self.max_columns:
+        if column >= self.max_columns:
             column = 0
             row += 1
         self.move_cursor(column, row, e.state)
@@ -279,7 +284,7 @@ class Gallery(object):
         row = self.cursor[1]
         column = self.cursor[0] - 1
         if column < 0:
-            column = self.max_columns
+            column = self.max_columns - 1
             row -= 1
         self.move_cursor(column, row, e.state)
 
@@ -287,7 +292,13 @@ class Gallery(object):
         prev_item = self.photos[self.cursor[2]]
         if self.cursor[2] != -1:
             self.remove_cursor(prev_item, state)
-        new_index = column + row * self.max_columns
+        new_index = self.cursor_to_index(row, column)
+        if new_index >= len(self.photos):
+            row, column = self.max_cursor_position()
+            new_index = len(self.photos) - 1
+        elif new_index < 0:
+            row, column = 0, 0
+            new_index = 0
         item = self.photos[new_index]
         self.set_cursor(item, column, row)
 
