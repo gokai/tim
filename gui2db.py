@@ -109,11 +109,11 @@ class Gui2Db(object):
         self.main.get_sidebar_view('main_tags').append_tags(tag_list)
 
     def _remove_tags(self, ids, tags):
-        self.db.remove_tags_from_file(sorted(ids.values()), tags)
+        self.db.remove_tags_from_files(sorted(ids.values()), tags)
 
     def remove_tags_from_files(self, event):
         view = self.main.views[self.main.cur_view]
-        names = [view.get_path(i) for i in view.selection]
+        names = view.selection()
         ids = self.db.get_file_ids(names)
         tags = set()
         for key in ids:
