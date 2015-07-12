@@ -79,6 +79,16 @@ class NameView(object):
 
     def get_names(self):
         return tuple(self._names.values())
+
+    def set(self, names):
+        self.widget.delete(*self._iids.values())
+        self._iids.clear()
+        self._names.clear()
+        for name in sorted(names):
+            iid = self.widget.insert('', 'end', text=name)
+            self._names[iid] = name
+            self._iids[name] = iid
+
         
 
 class TagView(NameView):

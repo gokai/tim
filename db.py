@@ -104,13 +104,15 @@ class FileDatabase(object):
             ret.append(os.path.join(f["path"], f["name"]))
         return ret
 
-    def get_file_tags(self, fileid):
+    def get_file_tags(self, fileids):
         cursor = self.connection.cursor()
-        cursor.execute("""SELECT tags.name as name
+        res = {}
+        for fileid in fileids:
+            cursor.execute("""SELECT tags.name as name
                             FROM file_tags, tags
                             WHERE file_tags.tag_id = tags.id and
                               file_tags.file_id = ?""", (fileid,))
-        res = [tag['name'] for tag in cursor]
+            res[fileid] = [tag['name'] for tag in cursor]
         return res
 
     def create_tags(self, tags):

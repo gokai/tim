@@ -115,11 +115,10 @@ class Gui2Db(object):
         view = self.main.views[self.main.cur_view]
         names = view.selection()
         ids = self.db.get_file_ids(names)
-        tags = set()
-        for key in ids:
-            tags.update(self.db.get_file_tags(ids[key]))
-        tags = tuple(tags)
-        dialog = ListDialog(self.main.root, tags, 
+        tags = self.db.get_file_tags(ids.values())
+        tagset = set(tags[ids[names[0]]])
+        tagset.update(*tags.values())
+        dialog = ListDialog(self.main.root, tagset, 
                 'Select tags to remove from\n{}'.format(',\n'.join(names)),
                 lambda t: self._remove_tags(ids, t))
 
@@ -131,24 +130,17 @@ class Gui2Db(object):
             showinfo('Removed files.', 
                     "The following files have been removed:\n{}".format('\n'.join(removed)))
 
-    def _get_tags_from_db(self, selection):
-        tags = set()
-        for fid in selection.values():
-            ftags = self.db.get_file_tags(fid)
-            if len(tags) == 0:
-                tags.update(ftags)
-            else:
-                tags.intersection_update(ftags)
-        return tags
-
     def show_selection_tags(self, event=None):
         if len(self.main.views) == 0:
             return
         selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
         if len(selection) == 0:
             return
-        tags = self._get_tags_from_db(selection)
-        view = TagView(self.main.sidebar, list(tags))
+        fids = tuple(selection.values())
+        tags = self.db.get_file_tags(fids)
+        tagset = set(tags[fids[0]])
+        tagset.intersection_update(*tags.values())
+        view = TagView(self.main.sidebar, list(tagset))
         self.main.add_sidebar(view, 'selection_tags')
 
     def _toggle(self, name, show):
@@ -169,13 +161,11 @@ class Gui2Db(object):
             self.main.remove_sidebar_view('selection_tags')
             return
         tagview = self.main.get_sidebar_view('selection_tags')
-        cur_tags = set(tagview.get_tag_list())
-        new_tags = self._get_tags_from_db(selection)
-        add_tags = new_tags.difference(cur_tags)
-        del_tags = cur_tags.difference(new_tags)
-        for tag in del_tags:
-            tagview.delete(tag)
-        tagview.append_tags(add_tags)
+        fids = tuple(selection.values())
+        new_tags = self.db.get_file_tags(fids)
+        tags = set(new_tags[fids[0]])
+        tags.intersection_update(*new_tags.values())
+        tagview.set(tags)
 
     def add_collection(self):
         tagview = self.main.get_sidebar_view('main_tags')
