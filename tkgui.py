@@ -32,7 +32,6 @@ class Main(object):
 
         self._menucolumn = 1
         self.views = list()
-        self.cur_view = 0
 
         self.paned_win = PanedWindow(root, orient=HORIZONTAL)
         self.paned_win.grid(row=1, column=0, sticky=(N, S, W, E))
@@ -85,14 +84,12 @@ class Main(object):
             self.sidebar_views['main'].widget.focus_set()
 
     def focus_main_view(self):
-        if len(self.views) > self.cur_view:
-            self.views[self.cur_view].widget.focus_set()
+        self.get_current_view().widget.focus_set()
 
     def new_view(self, view):
         self.views.append(view)
-        self.cur_view = len(self.views) - 1
-        self.tabs.add(view.widget, text=" {}.".format(self.cur_view))
-        self.tabs.select(self.cur_view)
+        self.tabs.add(view.widget, text=" {}.".format(self.tabs.index('end')))
+        self.tabs.select(view.widget)
 
         view.widget.focus_set()
         self.view_changed()
@@ -100,28 +97,17 @@ class Main(object):
     def remove_view(self, view):
         self.views.remove(view)
         self.tabs.forget(view.widget)
-        self.cur_view -= 1
         if len(self.views) >= 1:
-            self.views[-1].widget.focus_set()
-            self.tabs.select(self.cur_view)
-            self.views[self.cur_view].widget.focus_set()
+            widget = self.views[-1].widget
+            self.tabs.select(widget)
+            widget.focus_set()
         else:
             self.sidebar_views['main'].widget.focus_set()
         self.view_changed()
 
     def delete_current_view(self, event):
-        if len(self.views) > self.cur_view:
-            self.remove_view(self.views[self.cur_view])
-
-    def next_view(self):
-        self.paned_win.forget(self.views[self.cur_view].widget)
-        self.cur_view += 1
-        if self.cur_view >= len(self.views):
-            self.cur_view = 0
-        new_view = self.views[self.cur_view]
-        self.paned_win.add(new_view.widget, weight=5)
-        new_view.widget.focus_set()
-        self.view_changed()
+        if self.tabs.index('end') > 0:
+            self.remove_view(self.get_current_view())
 
     def close_query(self):
         if self._query is not None:
@@ -160,10 +146,10 @@ class Main(object):
         self._query = frame
 
     def get_current_view(self):
-        if len(self.views) > self.cur_view:
-            return self.views[self.cur_view]
+        if self.tabs.index('end') > 0:
+            return self.views[self.tabs.index('current')]
         else:
-            return None
+            return self.sidebar_views['main']
 
     def view_changed(self):
         self._root.event_generate('<<MainViewChanged>>')

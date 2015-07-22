@@ -44,7 +44,6 @@ if __name__ == "__main__":
 
     actions = {
         'quit' : lambda e: mainview.quit(),
-        'next_view' : lambda e: mainview.next_view(),
         'delete_view': mainview.delete_current_view,
         'add_tags' : lambda e: mainview.text_query('Add tags: '),
         'add_selected_tags': lambda e: glue.add_tags_from_tagview(e, tview),

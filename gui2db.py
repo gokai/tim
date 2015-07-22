@@ -30,7 +30,7 @@ class Gui2Db(object):
         tag_string = entry.get()
         tag_list = tag_string.split(',')
         tags = [t.strip() for t in tag_list]
-        file_ids = self.ids_from_gallery(self.main.views[self.main.cur_view])
+        file_ids = self.ids_from_gallery(self.main.get_current_view())
         self.db.add_tags_to_files(sorted(file_ids.values()), tags)
         self.main.close_query()
         self.main.get_sidebar_view('main_tags').append_tags(tags)
@@ -112,7 +112,7 @@ class Gui2Db(object):
         self.db.remove_tags_from_files(sorted(ids.values()), tags)
 
     def remove_tags_from_files(self, event):
-        view = self.main.views[self.main.cur_view]
+        view = self.main.get_current_view()
         names = view.selection()
         ids = self.db.get_file_ids(names)
         tags = self.db.get_file_tags(ids.values())
@@ -133,7 +133,7 @@ class Gui2Db(object):
     def show_selection_tags(self, event=None):
         if len(self.main.views) == 0:
             return
-        selection = self.ids_from_gallery(self.main.views[self.main.cur_view])
+        selection = self.ids_from_gallery(self.main.get_current_view())
         if len(selection) == 0:
             return
         fids = tuple(selection.values())

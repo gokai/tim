@@ -32,7 +32,6 @@ slideshow = {
 # Bindings global to the application
 appwide = {
         '<Control-q>':'quit',
-        '<Control-n>':'next_view',
         '<Control-w>':'delete_view',
         '<Control-a>':'add_tags',
         '<Control-d>':'add_selected_tags',
