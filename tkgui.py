@@ -2,6 +2,8 @@
 import os
 import subprocess
 import mimetypes
+import logging
+logger = logging.getLogger(__name__)
 
 from tkinter import Tk, Menu, N, S, W, E, HORIZONTAL, Toplevel, StringVar
 from tkinter.ttk import PanedWindow, Entry, Label, Frame, Button, Notebook

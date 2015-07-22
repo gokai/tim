@@ -11,6 +11,8 @@ import os
 import datetime
 import tarfile
 import csv
+import logging
+logger = logging.getLogger(__name__)
 
 SEARCH_EXCLUSIVE = 'e'
 SEARCH_INCLUSIVE = 'i'

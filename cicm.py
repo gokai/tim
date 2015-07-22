@@ -1,11 +1,10 @@
 #!/usr/bin/python
 #-*- coding: UTF-8 -*-
 
-"""cicm - Console Image Collection Manager
+"""cicm
 Cicm is a free software that creates, edits
-and manages image collections. It's also a
-sample ui for xfclib. See readme.txt
-for usage guide"""
+and manages image collections.
+"""
 
 __author__  = "Tachara (tortured.flame@gmail.com)"
 __date__ = "$Date 2010/31/03 18:07:00 $"
@@ -13,6 +12,8 @@ __copyright__ = "Copyright (c) 2010 Tachara"
 
 import sys
 import os
+import logging
+logging.basicConfig(filename='cicm.log', format='%(asctime)s | %(name)s | %(levelname)s | %(message)s', level=logging.DEBUG)
 
 from db import FileDatabase
 from gui2db import Gui2Db
@@ -28,9 +29,11 @@ if __name__ == "__main__":
     dbname = 'master.sqlite'
     if len(sys.argv) > 1:
         dbname = sys.argv[1]
+    logging.debug('Database: %s', dbname)
 
     run_init = False
     if not os.path.exists(dbname):
+        dbname.debug('run init on %s', dbname)
         run_init = True
     db = FileDatabase(dbname)
     if run_init:

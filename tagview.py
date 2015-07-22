@@ -1,6 +1,8 @@
 from tkinter.ttk import Treeview, Frame
 from tkinter import N, S, W, E
 import os
+import logging
+logger = logging.getLogger(__name__)
 
 import keybindings as kb
 from tkgraphics import Gallery
@@ -22,12 +24,14 @@ class NameView(object):
         kb.make_bindings(kb.tagview, actions, self.widget.bind)
         self._iids = dict()
         self._names = dict()
+        logger.debug('Names: %s', names)
         for name in sorted(names):
             iid = self.widget.insert('', 'end', text=name)
             self._names[iid] = name
             self._iids[name] = iid
 
     def selection(self):
+        logger.debug('Selection: %s', self.widget.selection())
         return [self._names[iid] for iid in self.widget.selection()]
 
     def edit(self):
@@ -39,6 +43,7 @@ class NameView(object):
         self.widget.event_generate('<<NameViewSearch>>')
 
     def append(self, names):
+        logger.debug('Append names: %s', names)
         for name in names:
             if name not in self._names.values():
                 iid = self.widget.insert('', 'end', text=name)

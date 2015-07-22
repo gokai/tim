@@ -5,6 +5,8 @@
 # 'a' means pressing a on its own
 # and 'as' means first pressing a then s.
 
+import logging
+logger = logging.getLogger(__name__)
 
 # Thumbnail view bindings
 gallery = {
@@ -75,4 +77,4 @@ def make_bindings(bindings, actions, bind_func):
         try:
             bind_func(key, actions[bindings[key]])
         except KeyError:
-            print('Invalid action: ', bindings[key])
+            logger.warning('Invalid action %s', key)
