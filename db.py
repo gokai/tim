@@ -108,13 +108,15 @@ class FileDatabase(object):
 
     def get_file_tags(self, fileids):
         cursor = self.connection.cursor()
-        res = {}
-        for fileid in fileids:
-            cursor.execute("""SELECT tags.name as name
-                            FROM file_tags, tags
-                            WHERE file_tags.tag_id = tags.id and
-                              file_tags.file_id = ?""", (fileid,))
-            res[fileid] = [tag['name'] for tag in cursor]
+        cursor.execute("CREATE TEMPORARY TABLE tmp_file_ids(INTEGER)")
+        cursor.executemany("INSERT INTO tmp_file_ids VALUES (?)", ((i, ) for i in fileids))
+        cursor.execute("""SELECT file_tags.file_id AS id, group_concat(tags.name) AS tags
+                        FROM file_tags, tags
+                        WHERE file_tags.tag_id = tags.id AND
+                          file_tags.file_id IN tmp_file_ids
+                        GROUP BY file_tags.file_id""")
+        res = [dict(row) for row in cursor]
+        cursor.execute("DROP TABLE tmp_file_ids")
         return res
 
     def create_tags(self, tags):

@@ -116,8 +116,7 @@ class Gui2Db(object):
         names = view.selection()
         ids = self.db.get_file_ids(names)
         tags = self.db.get_file_tags(ids.values())
-        tagset = set(tags[ids[names[0]]])
-        tagset.update(*tags.values())
+        tagset = set(*[t['tags'].split(',') for t in tags])
         dialog = ListDialog(self.main.root, tagset, 
                 'Select tags to remove from\n{}'.format(',\n'.join(names)),
                 lambda t: self._remove_tags(ids, t))
@@ -138,9 +137,9 @@ class Gui2Db(object):
             return
         fids = tuple(selection.values())
         tags = self.db.get_file_tags(fids)
-        tagset = set(tags[fids[0]])
-        tagset.intersection_update(*tags.values())
-        view = TagView(self.main.sidebar, list(tagset))
+        tagset = set(tags[0]['tags'].split(','))
+        tagset.intersection_update(*[t['tags'].split(',') for t in tags])
+        view = TagView(self.main.sidebar, tuple(tagset))
         self.main.add_sidebar(view, 'selection_tags')
 
     def _toggle(self, name, show):
@@ -160,11 +159,12 @@ class Gui2Db(object):
         if len(selection) == 0:
             self.main.remove_sidebar_view('selection_tags')
             return
+        logger.debug('Selection size:', len(selection))
         tagview = self.main.get_sidebar_view('selection_tags')
         fids = tuple(selection.values())
         new_tags = self.db.get_file_tags(fids)
-        tags = set(new_tags[fids[0]])
-        tags.intersection_update(*new_tags.values())
+        tags = set(new_tags[0]['tags'].split(','))
+        tags.intersection_update(*[t['tags'].split(',') for t in new_tags])
         tagview.set(tags)
 
     def add_collection(self):
