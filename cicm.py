@@ -62,6 +62,7 @@ if __name__ == "__main__":
         'focus_main_view': lambda e: mainview.focus_main_view(),
         'toggle_selection_tags': glue.toggle_selection_tags,
         'toggle_collections': glue.toggle_collections,
+        'tagstring_search': glue.search_tagstring,
         'help': lambda e: mainview.new_view(HelpView(mainview.root)),
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
@@ -75,7 +76,7 @@ if __name__ == "__main__":
 
     # Custom virtual events do not need to be user bindable
     # since their generation is user bindable. -> no dictionaries used.
-    mainview.root.bind_all('<<TagViewSearch>>', glue.search)
+    mainview.root.bind_all('<<TagViewSearch>>', glue.search_event)
     mainview.root.bind_all('<<TagViewEdit>>',
             lambda e: mainview.text_query('Edit tag:', tview.selection()[0]))
     mainview.root.bind_all('<<MainQueryAccept>>', glue.add_or_rename_tags)

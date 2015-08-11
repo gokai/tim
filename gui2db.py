@@ -16,11 +16,21 @@ class Gui2Db(object):
         self.db = db
         self.main = main
 
-    def search(self, event):
-        tags = self.main.active_sidebar().selection()
+    def search_tags(self, tags):
         files = self.db.search_by_tags(tags)
         paths = [os.path.join(d['path'], d['name']) for d in files]
         self.main.new_view(gallery_with_slideshow(self.main.root, paths, self.main.new_view))
+
+    def search_event(self, event):
+        tags = self.main.active_sidebar().selection()
+        self.search_tags(tags)
+
+    def search_tagstring(self, event):
+        self.main.text_query('Search with tags: ', 
+                accept_func = 
+                lambda ts, o: 
+                    self.search_tags(ts.split(','))
+            )
 
     def add_tags_from_tagview(self, event, tagview):
         db_ids = self.ids_from_gallery(self.main.get_current_view())

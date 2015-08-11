@@ -46,6 +46,7 @@ appwide = {
         '<Control-t>':'toggle_selection_tags',
         '<Control-Shift-H>':'help',
         '<Alt-c>':'toggle_collections',
+        '<Control-Shift-S>':'tagstring_search',
 }
 
 # Bindings for the tagview on the sidebar
