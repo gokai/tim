@@ -1,5 +1,7 @@
 import os
+import logging
 from mimetypes import guess_type
+logger = logging.getLogger(__name__)
 
 from tkinter.filedialog import askopenfilenames, askdirectory
 from tkinter.messagebox import askyesno, showwarning, showinfo
@@ -116,7 +118,8 @@ class Gui2Db(object):
         names = view.selection()
         ids = self.db.get_file_ids(names)
         tags = self.db.get_file_tags(ids.values())
-        tagset = set(*[t['tags'].split(',') for t in tags])
+        tagset = set(tags[0]['tags'].split(','))
+        tagset.intersection_update(*[t['tags'].split(',') for t in tags])
         dialog = ListDialog(self.main.root, tagset, 
                 'Select tags to remove from\n{}'.format(',\n'.join(names)),
                 lambda t: self._remove_tags(ids, t))
@@ -159,10 +162,12 @@ class Gui2Db(object):
         if len(selection) == 0:
             self.main.remove_sidebar_view('selection_tags')
             return
-        logger.debug('Selection size:', len(selection))
         tagview = self.main.get_sidebar_view('selection_tags')
         fids = tuple(selection.values())
         new_tags = self.db.get_file_tags(fids)
+        if len(new_tags) == 0:
+            self.main.remove_sidebar_view('selection_tags')
+            return
         tags = set(new_tags[0]['tags'].split(','))
         tags.intersection_update(*[t['tags'].split(',') for t in new_tags])
         tagview.set(tags)
