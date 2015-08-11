@@ -44,6 +44,9 @@ if __name__ == "__main__":
 
     tags = db.list_tags()
     tview = TagView(mainview.sidebar, tags)
+    def jump_to_tag(tag, orig):
+        tview.jump_to(tag)
+        tview.widget.focus_set()
 
     actions = {
         'quit' : lambda e: mainview.quit(),
@@ -54,7 +57,7 @@ if __name__ == "__main__":
         'add_folder' : glue.add_directory,
         'remove_tags': glue.remove_tags_from_files,
         'jump_to_tag': lambda e: mainview.text_query('Jump to tag: ',
-            accept_func=lambda t, o: tview.jump_to(t)),
+            accept_func=jump_to_tag),
         'focus_sidebar': lambda e: mainview.focus_sidebar(),
         'focus_main_view': lambda e: mainview.focus_main_view(),
         'toggle_selection_tags': glue.toggle_selection_tags,
