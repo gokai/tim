@@ -1,6 +1,4 @@
 
-__author__  = "tachara (tortured.flame@gmail.com)"
-
 import os
 import sys
 import warnings
@@ -114,15 +112,15 @@ class Gallery(object):
         self.thumb_h = thumb_size[1]
         self.photos = list()
         self._selection = set()
-        self.widget = Canvas(root)
+        self.widget = Frame(root, takefocus=1)
         self.make_view()
         self.make_bindings()
         self.activate_func = activate_func
-        self.widget.configure(takefocus=1)
+        self._canvas.configure(takefocus=1)
         self.loaded = 0
 
     def make_bindings(self):
-        self.widget.bind('<Expose>', lambda e: self.reload())
+        self._canvas.bind('<Expose>', lambda e: self.reload())
         actions = {'slide': self.activate,
                 'clear_selection': lambda e: self.clear_selection(),
                 'cursor_up':self.cursor_up,
@@ -130,9 +128,9 @@ class Gallery(object):
                 'cursor_left':self.cursor_left,
                 'cursor_down':self.cursor_down,
                 'load_more':lambda e: self.continue_loading()}
-        self.widget.bind('<Button-4>', self.scroll)
-        self.widget.bind('<Button-5>', self.scroll)
-        self.widget.bind('<MouseWheel>', self.scroll)
+        self._canvas.bind('<Button-4>', self.scroll)
+        self._canvas.bind('<Button-5>', self.scroll)
+        self._canvas.bind('<MouseWheel>', self.scroll)
         kb.make_bindings(kb.gallery, actions, self.widget.bind)
 
     def make_view(self):
@@ -140,18 +138,26 @@ class Gallery(object):
         self.style.configure('Gallery.TLabel', padding=3)
         self.style.configure('Cursor.Gallery.TLabel', background='red')
         self.style.configure('Selected.Gallery.TLabel', background='blue')
-        self.widget['confine'] = True
-        self.prev_w = self.widget.winfo_width()
+        self._canvas = Canvas(self.widget)
+        self._canvas.grid(row=0, column=0, sticky=(N,W,S,E))
+        self.widget.rowconfigure(0, weight=1)
+        self.widget.columnconfigure(0,weight=1)
+        self._canvas['confine'] = True
+        self.prev_w = self._canvas.winfo_width()
         self.load_pos = 0
         self.row = 0
         self.column = 0
         self.cursor = Cursor(-1,-1,-1)
+        self._scroll = Scrollbar(self.widget, command=self._canvas.yview, takefocus=0)
+        self._canvas['yscrollcommand'] = self._scroll.set
+        self._scroll.grid(row=0, column=1, sticky=(N,S))
+        self.widget.columnconfigure(1, weight=0)
         self.max_columns = self.calculate_max_columns()
         self.widget.after(100, self.load_next)
 
     def activate(self, e):
         self.activate_func(self.selection())
-        self.widget.focus_set()
+        self._canvas.focus_set()
 
     def get_path(self, item_id):
         return self.paths[item_id]
@@ -161,7 +167,7 @@ class Gallery(object):
         return paths
 
     def clear_selection(self):
-        self.widget.dtag('selected', 'selected')
+        self._canvas.dtag('selected', 'selected')
         for index in self._selection:
             self.set_state(self.photos[index], 'normal')
         self._selection.clear()
@@ -173,29 +179,29 @@ class Gallery(object):
 
     def scroll(self, event):
         if event.num == 4 or event.delta > 0:
-            self.widget.yview(SCROLL, -1, UNITS)
+            self._canvas.yview(SCROLL, -1, UNITS)
         elif event.num == 5 or event.delta < 0:
-            self.widget.yview(SCROLL, 1, UNITS)
+            self._canvas.yview(SCROLL, 1, UNITS)
 
     def reload(self):
-        w = self.widget.winfo_width()
+        w = self._canvas.winfo_width()
         if w != self.prev_w:
             self.prev_w = w
             self.max_columns = self.calculate_max_columns()
             self.repos = 0
             self.repos_col = 0
             self.repos_row = 0
-            self.widget.after_idle(self.reposition_next)
+            self._canvas.after_idle(self.reposition_next)
 
     def reposition_next(self):
         if len(self.photos) > 0:
             photo = self.photos[self.repos]
             new_x, new_y = self.calculate_pos(self.repos_col, self.repos_row)
-            self.widget.coords(photo.cid, new_x, new_y)
+            self._canvas.coords(photo.cid, new_x, new_y)
             if self.repos == self.cursor.prev_item:
                 self.cursor = Cursor(self.repos_col, self.repos_row, self.repos)
             col, row = self.repos_col, self.repos_row
-            self.widget.tag_bind(photo.cid, '<Button-1>',
+            self._canvas.tag_bind(photo.cid, '<Button-1>',
                     lambda e: self.button_callback(e, photo, col, row))
             self.repos_col += 1
 
@@ -207,7 +213,7 @@ class Gallery(object):
             self.widget.after_idle(self.reposition_next)
 
     def calculate_max_columns(self):
-        w = self.widget.winfo_width()
+        w = self._canvas.winfo_width()
         return floor(w/(self.thumb_w + 8))
 
     def calculate_pos(self, column, row):
@@ -223,11 +229,11 @@ class Gallery(object):
             col, row = self.column, self.row
             self.photos.append(photo)
             x, y = self.calculate_pos(self.column, self.row)
-            photo.cid = self.widget.create_image(x, y, image=photo)
+            photo.cid = self._canvas.create_image(x, y, image=photo)
             photo.index = self.load_pos
-            self.widget.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
-            self.widget.tag_bind(photo.cid, '<Double-Button-1>', self.activate)
-            self.widget.addtag_withtag('photo', photo.cid)
+            self._canvas.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
+            self._canvas.tag_bind(photo.cid, '<Double-Button-1>', self.activate)
+            self._canvas.addtag_withtag('photo', photo.cid)
             self.column += 1
             self.loaded += 1
         except OSError:
@@ -244,16 +250,16 @@ class Gallery(object):
         elif self.loaded >= self.LIMIT:
             self.loaded = 0
             x, y = self.calculate_pos(self.column, self.row)
-            button = Button(self.widget, text='Load More', command=self.continue_loading)
-            cid = self.widget.create_window(x, y, window=button)
-            self.widget.addtag_withtag('loadbutton', cid)
-        self.widget['scrollregion'] = self.widget.bbox('all')
+            button = Button(self._canvas, text='Load More', command=self.continue_loading)
+            cid = self._canvas.create_window(x, y, window=button)
+            self._canvas.addtag_withtag('loadbutton', cid)
+        self._canvas['scrollregion'] = self._canvas.bbox('all')
 
     def continue_loading(self):
         if self.load_pos < len(self.paths) - 1:
             self.load_pos += 1
-            self.widget.delete('loadbutton')
-            self.widget.after_idle(self.load_next)
+            self._canvas.delete('loadbutton')
+            self._canvas.after_idle(self.load_next)
 
     def cursor_to_index(self, row, column):
         return row * self.max_columns + column 
@@ -308,7 +314,7 @@ class Gallery(object):
     def set_cursor(self, item, column, row, index=None):
         self.set_state(item, 'active')
         self.cursor = Cursor(column, row, index or row*self.max_columns + column)
-        self.widget.addtag_withtag('selected', item.cid)
+        self._canvas.addtag_withtag('selected', item.cid)
         self.view_item(item)
         self._selection_add(item)
 
@@ -317,14 +323,14 @@ class Gallery(object):
         if state & 0x0004:
             self.set_state(item, 'selected')
         else:
-            if 'selected' in self.widget.gettags(item.cid) and item.index in self._selection:
+            if 'selected' in self._canvas.gettags(item.cid) and item.index in self._selection:
                 self._selection_remove(item)
             self.set_state(item, 'normal')
-            self.widget.dtag(item.cid, 'selected')
+            self._canvas.dtag(item.cid, 'selected')
 
     def _selection_add(self, item):
         self._selection.add(item.index)
-        self.widget.event_generate('<<GallerySelectionChanged>>')
+        self._canvas.event_generate('<<GallerySelectionChanged>>')
 
     def _selection_remove(self, item):
         self._selection.remove(item.index)
@@ -338,19 +344,19 @@ class Gallery(object):
 
         old_rect = getattr(item, 'rectangle_id', '')
         if old_rect != '':
-            self.widget.delete(old_rect)
-        bbox = self.widget.bbox(item.cid)
-        item.rectangle_id = self.widget.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], outline=color, width=8)
-        self.widget.tag_lower(item.rectangle_id, item.cid)
+            self._canvas.delete(old_rect)
+        bbox = self._canvas.bbox(item.cid)
+        item.rectangle_id = self._canvas.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], outline=color, width=8)
+        self._canvas.tag_lower(item.rectangle_id, item.cid)
 
     def view_item(self, item):
-        self.widget['scrollregion'] = self.widget.bbox('all')
-        bbox = self.widget.bbox(item.cid)
-        max_y = self.widget.bbox('all')[3]
-        max_visible_y = self.widget.canvasy(self.widget.winfo_height())
-        min_visible_y = self.widget.canvasy(0)
+        self._canvas['scrollregion'] = self._canvas.bbox('all')
+        bbox = self._canvas.bbox(item.cid)
+        max_y = self._canvas.bbox('all')[3]
+        max_visible_y = self._canvas.canvasy(self._canvas.winfo_height())
+        min_visible_y = self._canvas.canvasy(0)
         top = bbox[1]
         bottom = bbox[3]
         if bottom > max_visible_y or top < min_visible_y:
-            self.widget.yview_moveto((top - self.thumb_h) / max_y)
+            self._canvas.yview_moveto((top - self.thumb_h) / max_y)
 

@@ -1,15 +1,5 @@
 #!/usr/bin/python
 #-*- coding: UTF-8 -*-
-
-"""cicm
-Cicm is a free software that creates, edits
-and manages image collections.
-"""
-
-__author__  = "Tachara (tortured.flame@gmail.com)"
-__date__ = "$Date 2010/31/03 18:07:00 $"
-__copyright__ = "Copyright (c) 2010 Tachara"
-
 import sys
 import os
 import logging
