@@ -132,6 +132,7 @@ class Gallery(object):
         self._canvas.bind('<Button-5>', self.scroll)
         self._canvas.bind('<MouseWheel>', self.scroll)
         kb.make_bindings(kb.gallery, actions, self.widget.bind)
+        kb.make_bindings(kb.gallery, actions, self._canvas.bind)
 
     def make_view(self):
         self.style = Style()
