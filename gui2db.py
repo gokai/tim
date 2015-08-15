@@ -22,7 +22,7 @@ class Gui2Db(object):
         self.main.new_view(gallery_with_slideshow(self.main.root, paths, self.main.new_view))
 
     def search_event(self, event):
-        tags = self.main.active_sidebar().selection()
+        tags = event.widget.view.selection()
         self.search_tags(tags)
 
     def search_tagstring(self, event):

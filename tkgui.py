@@ -71,13 +71,6 @@ class Main(object):
         if self.sidebar_count == 0:
             del self.sidebar_views['main']
 
-    def active_sidebar(self):
-        widget = self._root.focus_lastfor()
-        for v in self.sidebar_views.values():
-            if v.widget == widget:
-                return v
-        return None
-
     def get_sidebar_view(self, name):
         return self.sidebar_views.get(name)
 
