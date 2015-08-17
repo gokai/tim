@@ -123,6 +123,7 @@ class Gallery(object):
         self._canvas.bind('<Expose>', lambda e: self.reload())
         actions = {'slide': self.activate,
                 'clear_selection': lambda e: self.clear_selection(),
+                'toggle_selection': self.toggle_selection,
                 'cursor_up':self.cursor_up,
                 'cursor_right':self.cursor_right,
                 'cursor_left':self.cursor_left,
@@ -165,6 +166,9 @@ class Gallery(object):
 
     def selection(self):
         paths = [self.paths[i] for i in self._selection]
+        index = self.cursor_to_index(self.cursor.row, self.cursor.column)
+        if index not in self._selection:
+            paths.append(self.paths[index])
         return paths
 
     def clear_selection(self):
@@ -172,6 +176,13 @@ class Gallery(object):
         for index in self._selection:
             self.set_state(self.photos[index], 'normal')
         self._selection.clear()
+
+    def toggle_selection(self, event):
+        index = self.cursor_to_index(self.cursor.row, self.cursor.column)
+        if index in self._selection:
+            self.selection_remove(self.photos[index])
+        else:
+            self.selection_add(self.photos[index])
 
     def button_callback(self, event, item, column, row):
         prev_item = self.photos[self.cursor.prev_item]
@@ -315,26 +326,24 @@ class Gallery(object):
     def set_cursor(self, item, column, row, index=None):
         self.set_state(item, 'active')
         self.cursor = Cursor(column, row, index or row*self.max_columns + column)
-        self._canvas.addtag_withtag('selected', item.cid)
         self.view_item(item)
-        self._selection_add(item)
 
     def remove_cursor(self, item, state):
-        # control key was down -> selection
-        if state & 0x0004:
+        if item.index in self._selection:
             self.set_state(item, 'selected')
         else:
-            if 'selected' in self._canvas.gettags(item.cid) and item.index in self._selection:
-                self._selection_remove(item)
             self.set_state(item, 'normal')
-            self._canvas.dtag(item.cid, 'selected')
 
-    def _selection_add(self, item):
+    def selection_add(self, item):
         self._selection.add(item.index)
+        self.set_state(item, 'selected')
         self._canvas.event_generate('<<GallerySelectionChanged>>')
 
-    def _selection_remove(self, item):
+    def selection_remove(self, item):
         self._selection.remove(item.index)
+        self.set_state(item, 'normal')
+        self._canvas.dtag(item.cid, 'selected')
+        self._canvas.event_generate('<<GallerySelectionChanged>>')
 
     def set_state(self, item, state):
         color = ''

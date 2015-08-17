@@ -22,6 +22,7 @@ gallery = {
         '<Control-c>':'clear_selection',
         '<Return>':'slide',
         'm':'load_more',
+        's':'toggle_selection'
 }
 
 # Full view bindings
