@@ -120,7 +120,7 @@ class Gallery(object):
         self.loaded = 0
 
     def make_bindings(self):
-        self._canvas.bind('<Expose>', lambda e: self.reload())
+        self._canvas.bind('<Configure>', lambda e: self.reload())
         actions = {'slide': self.activate,
                 'clear_selection': lambda e: self.clear_selection(),
                 'toggle_selection': self.toggle_selection,
@@ -210,6 +210,10 @@ class Gallery(object):
             photo = self.photos[self.repos]
             new_x, new_y = self.calculate_pos(self.repos_col, self.repos_row)
             self._canvas.coords(photo.cid, new_x, new_y)
+            rectangle = getattr(photo, 'rectangle_id', None)
+            if rectangle is not None:
+                bbox = self._canvas.bbox(photo.cid)
+                self._canvas.coords(rectangle, bbox[0], bbox[1], bbox[2], bbox[3])
             if self.repos == self.cursor.prev_item:
                 self.cursor = Cursor(self.repos_col, self.repos_row, self.repos)
             col, row = self.repos_col, self.repos_row
@@ -223,6 +227,8 @@ class Gallery(object):
         if self.repos < len(self.photos) - 1:
             self.repos += 1
             self.widget.after_idle(self.reposition_next)
+        else:
+            self._canvas['scrollregion'] = self._canvas.bbox('all')
 
     def calculate_max_columns(self):
         w = self._canvas.winfo_width()
