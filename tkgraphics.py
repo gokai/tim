@@ -229,6 +229,9 @@ class Gallery(object):
             self.widget.after_idle(self.reposition_next)
         else:
             self._canvas['scrollregion'] = self._canvas.bbox('all')
+            if self.cursor.prev_item != -1:
+                index = self.cursor_to_index(self.cursor.row, self.cursor.column)
+                self.view_item(self.photos[index])
 
     def calculate_max_columns(self):
         w = self._canvas.winfo_width()
