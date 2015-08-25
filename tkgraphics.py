@@ -4,6 +4,8 @@ import sys
 import warnings
 from math import floor
 from collections import namedtuple
+import logging
+logger = logging.getLogger(__name__)
 
 try:
     from Tkinter import *
@@ -165,8 +167,10 @@ class Gallery(object):
         return self.paths[item_id]
 
     def selection(self):
+        logger.debug('selection %s', str(self._selection))
         paths = [self.paths[i] for i in self._selection]
-        index = self.cursor_to_index(self.cursor.row, self.cursor.column)
+        photo_index = self.cursor_to_index(self.cursor.row, self.cursor.column)
+        index = self.photos[photo_index].index
         if index not in self._selection:
             paths.append(self.paths[index])
         return paths
@@ -178,11 +182,12 @@ class Gallery(object):
         self._selection.clear()
 
     def toggle_selection(self, event):
-        index = self.cursor_to_index(self.cursor.row, self.cursor.column)
+        photo_index = self.cursor_to_index(self.cursor.row, self.cursor.column)
+        index = self.photos[photo_index].index
         if index in self._selection:
-            self.selection_remove(self.photos[index])
+            self.selection_remove(self.photos[photo_index])
         else:
-            self.selection_add(self.photos[index])
+            self.selection_add(self.photos[photo_index])
 
     def button_callback(self, event, item, column, row):
         prev_item = self.photos[self.cursor.prev_item]
@@ -258,9 +263,10 @@ class Gallery(object):
             self.column += 1
             self.loaded += 1
         except OSError:
+            logger.info('Could not open %s', self.paths[self.load_pos])
             self.load_pos += 1
         except Image.DecompressionBombWarning:
-            self.lead_pos += 1
+            self.load_pos += 1
 
         if self.column >= self.max_columns:
             self.row += 1
@@ -329,12 +335,16 @@ class Gallery(object):
         elif new_index < 0:
             row, column = 0, 0
             new_index = 0
+        logger.debug('move_cursor, new_index=%d', new_index)
         item = self.photos[new_index]
+        logger.debug('move_cursor, item.index=%d', item.index)
         self.set_cursor(item, column, row)
 
     def set_cursor(self, item, column, row, index=None):
         self.set_state(item, 'active')
         self.cursor = Cursor(column, row, index or row*self.max_columns + column)
+        logger.debug('cursor: %s', str(self.cursor))
+        self._canvas.event_generate('<<GallerySelectionChanged>>')
         self.view_item(item)
 
     def remove_cursor(self, item, state):
