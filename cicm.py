@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     run_init = False
     if not os.path.exists(dbname):
-        dbname.debug('run init on %s', dbname)
+        logging.debug('run init on %s', dbname)
         run_init = True
     db = FileDatabase(dbname)
     if run_init:
