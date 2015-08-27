@@ -7,7 +7,7 @@ logging.basicConfig(filename='cicm.log', format='%(asctime)s | %(name)s | %(leve
 
 from db import FileDatabase
 from gui2db import Gui2Db
-from tkgui import Main
+from mainview import Main
 from tkgraphics import gallery_with_slideshow
 from tagview import TagView
 from helpview import HelpView
