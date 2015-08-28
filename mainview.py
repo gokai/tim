@@ -121,6 +121,8 @@ class Main(object):
                 event.widget.event_generate('<<MainQueryAccept>>')
 
     def text_query(self, query_lable, original_text=None, accept_func=None):
+        if self._query is not None:
+            return
         frame = Frame(self.menubar)
         label = Label(frame, text=query_lable)
         label.grid(column=0, row=0, sticky=(N, S))
