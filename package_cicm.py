@@ -4,10 +4,17 @@ import tarfile
 import time
 import sys
 
-files = ("cicm.py", "ui.py", "cui.py", "gui.py", "interpreter.py",
-         "xfclib/__init__.py", "xfclib/manager.py", "xfclib/collection.py",
-         "colls/skeleton.xic.base", "settings.py", "cicm_en.xml", "cicm_fi.xml", "graphics.py", 
-         "cicm.xml", "icon_gallery.svg", "icon_slide.svg")
+files = (
+    "cicm.py",
+    "tkgui.py",
+    "tkgraphics.py",
+    "db.py",
+    "tagview.py", 
+    "gui2db.py",
+    "keybindings.py",
+    "helpview.py",
+    "dialog.py",
+)
 
 # Format for time.strftime which returns a string of the date
 # based on the format.

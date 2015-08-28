@@ -2,7 +2,6 @@
 # A simple database class to handle tagging files.
 
 __license__ = "WTFPL"
-__version__ = "alpha-0.1"
 
 #TODO: return values?
 #TODO: a fix for os.path.commonprefix
@@ -12,40 +11,22 @@ import os
 import datetime
 import tarfile
 import csv
+import logging
+logger = logging.getLogger(__name__)
 
 SEARCH_EXCLUSIVE = 'e'
 SEARCH_INCLUSIVE = 'i'
 
+# CSV dialect used for exporting.
+# using Unit and record separator chars as delimiters
+# -> no collisions
 class ExportDialect(csv.Dialect):
-    delimiter = "|"
+    delimiter = "\u001F"
     doublequote = False
-    escapechar = "'"
-    lineterminator = "\n"
+    lineterminator = "\u001E"
     quoting = csv.QUOTE_NONE
     skipinitialspace = True
     strict = True
-
-class MyDict(dict):
-    def __init__(self, *args, **kwargs):
-        self.sup = super(MyDict, self)
-        self.sup.__init__(*args, **kwargs)
-        self.tags_set = False
-        self.fc_set = False
-
-    def set_get_tags(self, func):
-        self.get_tags = func
-
-    def set_get_fc(self, func):
-        self.get_fc = func
-
-    def __getitem__(self, key):
-        if key == "tags" and not self.tags_set:
-            self.tags_set = True
-            self["tags"] = self.get_tags(self.id)
-        elif key == "fc" and not self.fc_set:
-            self.fc_set = True
-            self["fc"] = self.get_fc(self.id)
-        return self.sup.__getitem__(key)
 
 
 class FileDatabase(object):
@@ -125,15 +106,17 @@ class FileDatabase(object):
             ret.append(os.path.join(f["path"], f["name"]))
         return ret
 
-    def get_file_tags(self, fileid):
+    def get_file_tags(self, fileids):
         cursor = self.connection.cursor()
-        cursor.execute("""SELECT tags.name as name
-                            FROM file_tags, tags
-                            WHERE file_tags.tag_id = tags.id and
-                              file_tags.file_id = ?""", (fileid,))
-        res = list()
-        for tag in cursor:
-            res.append(tag[0])
+        cursor.execute("CREATE TEMPORARY TABLE tmp_file_ids(INTEGER)")
+        cursor.executemany("INSERT INTO tmp_file_ids VALUES (?)", ((i, ) for i in fileids))
+        cursor.execute("""SELECT file_tags.file_id AS id, group_concat(tags.name) AS tags
+                        FROM file_tags, tags
+                        WHERE file_tags.tag_id = tags.id AND
+                          file_tags.file_id IN tmp_file_ids
+                        GROUP BY file_tags.file_id""")
+        res = [dict(row) for row in cursor]
+        cursor.execute("DROP TABLE tmp_file_ids")
         return res
 
     def create_tags(self, tags):
@@ -141,7 +124,7 @@ class FileDatabase(object):
            Called automatically by all tag adding methods.
            tags   an iterable of tag names."""
         cursor = self.connection.cursor()
-        cursor.executemany("INSERT INTO tags(name) VALUES (?)", [(t,) for t in tags])
+        cursor.executemany("INSERT INTO tags(name) VALUES (?)", ((t,) for t in tags))
 
     def add_files(self, fileinfos):
         """Adds new files to the database.
@@ -193,42 +176,47 @@ class FileDatabase(object):
         cursor.executemany("DELETE FROM files WHERE id = ?", [(i,) for i in idict.values()])
         self.connection.commit()
 
-    def add_tags_to_file(self, item, tags):
-        """Adds tags to the file identified by item.
+    def add_tags_to_files(self, items, tags):
+        """Adds tags to the files identified by item.
            tags  iterable of the tags.
-           item  id of the file from get_file_ids."""
+           items  ids of the file from get_file_ids."""
         cursor = self.connection.cursor()
         self.create_tags(tags)
-        cursor.execute("BEGIN")
         tag_ids = self.get_tag_ids(tags)
-        cursor.executemany("INSERT INTO file_tags(file_id, tag_id) VALUES(?, ?)", 
-                [(item, tag_ids[key]) for key in tag_ids.keys()])
+        cursor.execute("BEGIN")
+        for item in items:
+            cursor.executemany("INSERT INTO file_tags(file_id, tag_id) VALUES(?, ?)", 
+                    [(item, tag_ids[key]) for key in tag_ids.keys()])
         self.connection.commit()
 
-    def remove_tags_from_file(self, item, tags):
+    def remove_tags_from_files(self, items, tags):
         """Removes tags from a file.
-           item  id of the item
+           items  ids of the item
            tags  an iterable of tag names"""
         cursor = self.connection.cursor()
         tag_ids = self.get_tag_ids(tags)
         cursor.execute("BEGIN")
-        cursor.executemany("DELETE FROM file_tags WHERE file_id = ? AND tag_id = ?",
-                [(item, tag_ids[key]) for key in tag_ids.keys()])
+        for item in items:
+            cursor.executemany("DELETE FROM file_tags WHERE file_id = ? AND tag_id = ?",
+                    ((item, tag_ids[key]) for key in tag_ids.keys()))
         self.connection.commit()
 
     def search_by_name(self, search_string):
         """Returns a list of dictionaries of all files that match search_string.
            search_string  a string with sql wildcards"""
         cursor = self.connection.cursor()
-        cursor.execute("""SELECT files.id AS id, files.name AS name, paths.name AS path, date 
-                FROM files, paths
-                WHERE paths.id = files.path AND files.name LIKE :ss""",
+        cursor.execute("""SELECT files.id AS id, files.name AS name, paths.name AS path, files.date,
+                          group_concat(tags.name) AS tags
+                FROM files, paths, file_tags, tags
+                WHERE paths.id = files.path AND file_tags.file_id = files.id AND
+                      file_tags.tag_id = tags.id
+                AND files.name GLOB :ss
+                GROUP BY files.id""",
                 { "ss":search_string })
         res = list()
         for row in cursor:
-            res.append(MyDict(row))
-            res[-1].set_get_tags(self.get_file_tags(res[-1]["id"]))
-            res[-1].id = res[-1]["id"]
+            res.append(dict(row))
+            res[-1]['tags'] = res[-1]['tags'].split(',')
         return res
 
     def search_by_tags(self, tags, search_type = SEARCH_EXCLUSIVE):
@@ -236,7 +224,8 @@ class FileDatabase(object):
            tags  an iterable with the tag names searched."""
         cursor = self.connection.cursor()
         query = """SELECT files.id AS id, files.name AS name, paths.name AS path,
-            files.date AS date, count(tags.id) AS tags_matched
+                          files.date AS date, group_concat(tags.name) AS tags,
+                          count(tags.id) AS tags_matched
             FROM files, file_tags, tags, paths 
             WHERE tags.id = file_tags.tag_id AND
             files.path = paths.id AND
@@ -248,9 +237,8 @@ class FileDatabase(object):
         res = list()
         for row in cursor:
             if search_type == SEARCH_INCLUSIVE or row["tags_matched"] == len(tags):
-                res.append(MyDict(row))
-                res[-1].set_get_tags(lambda x: self.get_file_tags(x))
-                res[-1].id = res[-1]["id"]
+                res.append(dict(row))
+                res[-1]['tags'] = res[-1]['tags'].split(',')
         return res
 
     def add_tags_to_collection(self, name, tags):
@@ -263,7 +251,7 @@ class FileDatabase(object):
         self.create_tags(tags)
         tag_ids = self.get_tag_ids(tags)
         cursor.executemany("INSERT INTO collection_tags(collection_id, tag_id) VALUES(?, ?)",
-                [(item, tag_ids[key]) for key in tag_ids.keys()])
+                ((item, tag_ids[key]) for key in tag_ids.keys()))
         self.connection.commit()
 
     def add_collection(self, name, tags):
@@ -272,6 +260,17 @@ class FileDatabase(object):
         self.create_tags(tags)
         self.connection.commit()
         self.add_tags_to_collection(name, tags)
+
+    def add_files_to_collection(self, collection, files):
+        tags = self.get_collection_tags(collection)
+        tag_ids = self.get_tag_ids(tags)
+        cursor = self.connection.cursor()
+        data = []
+        for f in files:
+            for tid in tag_ids.values():
+                data.append((f['id'], tid))
+        cursor.executemany("INSERT INTO file_tags(file_id, tag_id) VALUES(?, ?)", data)
+        self.connection.commit()
     
     def remove_collection(self, name):
         cursor = self.connection.cursor()
@@ -301,14 +300,15 @@ class FileDatabase(object):
 
     def list_collections(self):
         """Returns a list of all collection data in the database."""
-        names = self._list_names("collections")
+        cursor = self.connection.cursor()
+        cursor.execute("""SELECT collections.name AS name, group_concat(tags.name) AS tags
+                        FROM collections, tags, collection_tags
+                        WHERE collections.id = collection_tags.collection_id AND
+                        tags.id = collection_tags.tag_id""")
         ret = list()
-        for n in names:
-            d = MyDict(name=n)
-            d.id = n
-            d.set_get_tags(lambda x: self.get_collection_tags(x))
-            d.set_get_fc(lambda x: len(self.list_files_in_collection(x)))
-            ret.append(d)
+        for row in cursor:
+            if row[0] is not None:
+                ret.append({'name':row[0], 'tags':row[1]})
         return ret
 
     def list_files_in_collection(self, collection):
@@ -327,6 +327,55 @@ class FileDatabase(object):
             tags.append(row[0])
         return tags
 
+    def list_all_files(self):
+        """Returns a list of all files in the database."""
+        cursor = self.connection.cursor()
+        cursor.execute("""SELECT files.id AS id, files.name AS name, paths.name AS path,
+                                 files.date AS date, group_concat(tags.name) AS tags
+                          FROM files, file_tags, tags, paths
+                          WHERE tags.id = file_tags.tag_id AND files.path = paths.id AND
+                               file_tags.file_id = files.id
+                          GROUP BY files.id
+                        """)
+        res = list()
+        for row in cursor:
+            res.append(dict(row))
+            res[-1]['tags'] = res[-1]['tags'].split(',')
+        return res
+
+    def remove_deleted_files(self):
+        """Removes files no longer present on filesystem from database."""
+        files = self.list_all_files()
+        paths = self.get_full_paths(files)
+        removed = dict()
+        ret_val = list()
+        for i, path in enumerate(paths):
+            if not os.path.exists(path):
+                removed[path] = files[i]['id']
+                ret_val.append(path)
+        self.remove_files(removed)
+        return ret_val
+
+
+    def rename_tags(self, tag_pairs):
+        """Renames tags given in tag_pairs with values from tag_pairs.
+         tag_pairs    an iterable of (old_name, new_name) pairs."""
+        cursor = self.connection.cursor()
+        cursor.executemany("""UPDATE tags SET name=?2 WHERE name=?1""", tag_pairs)
+        self.connection.commit()
+    
+    def join_tags(self, tag1, tag2):
+        """Combines two tags into one, removing tag2 from database.
+        All references to tag2 are changed to refer to tag1.
+        tag1    the first tag
+        tag2    the second tag. Will be removed."""
+        cursor = self.connection.cursor()
+        ids = self.get_tag_ids((tag1, tag2))
+        cursor.execute("""UPDATE file_tags SET tag_id = ?1 WHERE tag_id = ?2""", (ids[tag1], ids[tag2]))
+        cursor.execute("""UPDATE collection_tags SET tag_id=?1 WHERE tag_id = ?2""", (ids[tag1], ids[tag2]))
+        cursor.execute("""DELETE FROM tags WHERE id = ?""", (ids[tag2], ))
+        self.connection.commit()
+
     def export_collection(self, collection):
         """Creates an archive with all files and metadata of a collection.
            The achive is a gzipped tar containing the metadata file and 
@@ -337,7 +386,6 @@ class FileDatabase(object):
             files = self.list_files_in_collection(collection)
             pathlist = [f["path"] for f in files]
             common_root = os.path.commonprefix(pathlist)
-            print(common_root)
             for path in pathlist:
                 if "/media/files/kuvat/muut/instructor" not in path:
                     print(path)
@@ -348,4 +396,5 @@ class FileDatabase(object):
 
     def import_collection(self, filename, common_root="."):
         """Adds an exported collection and its files to the database."""
+        pass
 
