@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # A simple database class to handle tagging files.
 
-__license__ = "WTFPL"
-
 #TODO: return values?
 #TODO: a fix for os.path.commonprefix
 
