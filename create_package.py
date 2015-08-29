@@ -1,12 +1,14 @@
 #!/bin/python
 
+# Creates a gzipped tar package of the procjects source files.
+
 import tarfile
 import time
 import sys
 
 files = (
-    "cicm.py",
-    "tkgui.py",
+    "tim.py",
+    "mainview.py",
     "tkgraphics.py",
     "db.py",
     "tagview.py", 
@@ -14,6 +16,8 @@ files = (
     "keybindings.py",
     "helpview.py",
     "dialog.py",
+    "README.md",
+    "UNLICENSE",
 )
 
 # Format for time.strftime which returns a string of the date
@@ -21,7 +25,7 @@ files = (
 # %d - Day as decimal
 # %m - Month as decimal
 # %Y - Full year as decimal
-filename_format = "cicm-%Y%m%d.tar.gz"
+filename_format = "tim-%Y%m%d.tar.gz"
 filename =  time.strftime(filename_format)
 if len(sys.argv) > 1:
     filename = sys.argv[1]
