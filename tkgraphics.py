@@ -233,6 +233,8 @@ class Gallery(object):
             self.repos += 1
             self.widget.after_idle(self.reposition_next)
         else:
+            new_x, new_y = self.calculate_pos(self.repos_col, self.repos_row)
+            self._canvas.coords('loadbutton', new_x, new_y)
             self._canvas['scrollregion'] = self._canvas.bbox('all')
             if self.cursor.prev_item != -1:
                 index = self.cursor_to_index(self.cursor.row, self.cursor.column)
