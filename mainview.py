@@ -16,9 +16,9 @@ import keybindings as kb
 
 class Main(object):
 
-    def __init__(self):
+    def __init__(self, title):
         root = Tk()
-        root.title('GICM')
+        root.title(title)
         root.focus_set()
         root.rowconfigure(0, weight=0)
         root.columnconfigure(0, weight=1)

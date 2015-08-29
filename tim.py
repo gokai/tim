@@ -3,7 +3,7 @@
 import sys
 import os
 import logging
-logging.basicConfig(filename='cicm.log', format='%(asctime)s | %(name)s | %(levelname)s | %(message)s', level=logging.DEBUG)
+logging.basicConfig(filename='tim.log', format='%(asctime)s | %(name)s | %(levelname)s | %(message)s', level=logging.DEBUG)
 
 from db import FileDatabase
 from gui2db import Gui2Db
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     db = FileDatabase(dbname)
     if run_init:
         db.initialize()
-    mainview = Main()
+    mainview = Main('TIM - Tagged Image Manager')
 
     glue = Gui2Db(db, mainview)
 

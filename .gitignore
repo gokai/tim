@@ -6,3 +6,5 @@
 *.xic
 *.sqlite
 *.tar.gz
+tags
+*.log
