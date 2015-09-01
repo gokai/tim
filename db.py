@@ -282,7 +282,7 @@ class FileDatabase(object):
         data = []
         for f in files:
             for tid in tag_ids.values():
-                data.append((f['id'], tid))
+                data.append((files[f], tid))
         cursor.executemany("INSERT INTO file_tags(file_id, tag_id) VALUES(?, ?)", data)
         self.connection.commit()
     
