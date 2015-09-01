@@ -244,3 +244,17 @@ class Gui2Db(object):
     def toggle_collections(self, event):
         self._toggle('collections', self.show_collections)
 
+    def add_to_collections(self, event):
+        sidebar = self.main.get_sidebar_view('collections')
+        files = self.ids_from_gallery(self.main.get_current_view())
+        collections = []
+        def add(colls):
+            for c in colls:
+                self.db.add_files_to_collection(c, files)
+
+        if sidebar is not None:
+            collections = sidebar.selection()
+            add(collections)
+        else:
+            self.main.text_query('Add to collection(s): ', '', lambda coll_s, o: add(coll_s.split(',')))
+

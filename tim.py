@@ -54,6 +54,7 @@ if __name__ == "__main__":
         'toggle_collections': glue.toggle_collections,
         'tagstring_search': glue.search_tagstring,
         'help': lambda e: mainview.new_view(HelpView(mainview.root)),
+        'add_to_collections': glue.add_to_collections,
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
     buttons = {
