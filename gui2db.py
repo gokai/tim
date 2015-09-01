@@ -16,11 +16,28 @@ class Gui2Db(object):
     def __init__(self, db, main):
         self.db = db
         self.main = main
+        self.all_ids = {}
 
     def search_tags(self, tags):
         files = self.db.search_by_tags(tags)
         paths = [os.path.join(d['path'], d['name']) for d in files]
-        self.main.new_view(gallery_with_slideshow(self.main.root, paths, self.main.new_view))
+        gal = gallery_with_slideshow(self.main.root, sorted(paths), self.main.new_view)
+        self.main.new_view(gal)
+        self.fill_all_ids(gal)
+
+    def fill_all_ids(self, gallery):
+        pathset = set(gallery.paths).difference(self.all_ids.keys())
+        id_generator = self.db.generate_file_ids(sorted(pathset))
+
+        def add_next_id():
+            try:
+                pair = next(id_generator)
+                self.all_ids[pair[0]] = pair[1]
+                self.main.root.after_idle(add_next_id)
+            except StopIteration:
+                pass
+
+        self.main.root.after_idle(add_next_id)
 
     def search_event(self, event):
         tags = event.widget.view.selection()
@@ -151,7 +168,6 @@ class Gui2Db(object):
         selection = gallery.selection()
         if len(selection) == 0:
             return
-        self.all_ids = self.db.get_file_ids(gallery.paths)
         fids = (self.all_ids[p] for p in selection)
         tags = self.db.get_file_tags(fids)
         tagset = set(tags[0]['tags'].split(','))
@@ -172,7 +188,8 @@ class Gui2Db(object):
         if (self.main.get_sidebar_view('selection_tags') is None
            or self.main.get_current_view() is None):
             return
-        selection = self.main.get_current_view().selection()
+        gallery = self.main.get_current_view()
+        selection = gallery.selection()
         if len(selection) == 0:
             self.main.remove_sidebar_view('selection_tags')
             return
