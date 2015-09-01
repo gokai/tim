@@ -1,4 +1,4 @@
-from tkinter.ttk import Treeview, Frame, Scrollbar
+from tkinter.ttk import Treeview, Frame, Scrollbar, Label
 from tkinter import N, S, W, E
 import os
 import logging
@@ -10,13 +10,17 @@ from tkgraphics import Gallery
 class NameView(object):
     """Shows a treeview of unique names."""
 
-    def __init__(self, master, names):
+    def __init__(self, master, names, title=""):
         self.widget = Frame(master)
+        if title != "":
+            self.title = Label(self.widget, text=title) 
+            self.title.grid(row=0, column=0)
         self._tree = Treeview(self.widget, columns='name')
-        self._tree.grid(row=0,column=0, sticky=(N,S,W,E))
+        self._tree.grid(row=1, column=0, sticky=(N,S,W,E))
         self._tree.view = self
         self.widget.columnconfigure(0, weight=1)
-        self.widget.rowconfigure(0,weight=1)
+        self.widget.rowconfigure(0,weight=0)
+        self.widget.rowconfigure(1,weight=1)
         self._tree.column('name', width=50)
         self._tree['show'] = 'tree'
         actions = {'edit': lambda e: self.edit(),
@@ -29,7 +33,6 @@ class NameView(object):
         kb.make_bindings(kb.tagview, actions, self._tree.bind)
         self._iids = dict()
         self._names = dict()
-        logger.debug('Names: %s', names)
         self.widget.focus_set = self._tree.focus_set
         for name in sorted(names):
             iid = self._tree.insert('', 'end', text=name)
@@ -37,7 +40,7 @@ class NameView(object):
             self._iids[name] = iid
         self._scroll = Scrollbar(self.widget, command=self._tree.yview)
         self._tree['yscrollcommand'] = self._scroll.set
-        self._scroll.grid(row=0, column=1, sticky=(N, S))
+        self._scroll.grid(row=1, column=1, sticky=(N, S))
         self.widget.columnconfigure(1, weight=0)
 
 
@@ -109,8 +112,8 @@ class NameView(object):
 
 class TagView(NameView):
 
-    def __init__(self, master, tags):
-        super(TagView, self).__init__(master, tags)
+    def __init__(self, master, tags, title=""):
+        super(TagView, self).__init__(master, tags, title)
 
     def append_tags(self, tags):
         tags = tuple(set(tags))

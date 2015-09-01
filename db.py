@@ -318,7 +318,8 @@ class FileDatabase(object):
         cursor.execute("""SELECT collections.name AS name, group_concat(tags.name) AS tags
                         FROM collections, tags, collection_tags
                         WHERE collections.id = collection_tags.collection_id AND
-                        tags.id = collection_tags.tag_id""")
+                        tags.id = collection_tags.tag_id
+                        GROUP BY collections.id""")
         ret = list()
         for row in cursor:
             if row[0] is not None:

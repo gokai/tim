@@ -33,7 +33,7 @@ if __name__ == "__main__":
     glue = Gui2Db(db, mainview)
 
     tags = db.list_tags()
-    tview = TagView(mainview.sidebar, tags)
+    tview = TagView(mainview.sidebar, tags, "Tags")
     def jump_to_tag(tag, orig):
         tview.jump_to(tag)
         tview.widget.focus_set()
@@ -74,6 +74,7 @@ if __name__ == "__main__":
     mainview.root.bind_all('<<SlideShowNext>>', glue.update_selection_tags)
     mainview.root.bind_all('<<SlideShowPrev>>', glue.update_selection_tags)
     mainview.root.bind_all('<<MainViewChanged>>', glue.update_selection_tags)
+    mainview.root.bind_all('<<NameViewSearch>>', glue.search_collection)
 
     mainview.add_sidebar(tview, 'main_tags')
     mainview.display()
