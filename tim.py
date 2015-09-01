@@ -33,7 +33,7 @@ if __name__ == "__main__":
     glue = Gui2Db(db, mainview)
 
     tags = db.list_tags()
-    tview = TagView(mainview.sidebar, tags)
+    tview = TagView(mainview.sidebar, tags, "Tags")
     def jump_to_tag(tag, orig):
         tview.jump_to(tag)
         tview.widget.focus_set()

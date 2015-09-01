@@ -172,7 +172,7 @@ class Gui2Db(object):
         tags = self.db.get_file_tags(fids)
         tagset = set(tags[0]['tags'].split(','))
         tagset.intersection_update(*[t['tags'].split(',') for t in tags])
-        view = TagView(self.main.sidebar, tuple(tagset))
+        view = TagView(self.main.sidebar, tuple(tagset), 'Selection tags')
         self.main.add_sidebar(view, 'selection_tags')
 
     def _toggle(self, name, show):
@@ -226,7 +226,7 @@ class Gui2Db(object):
         colls = self.db.list_collections()
         if len(colls) == 0:
             return
-        view = NameView(self.main.sidebar, [c['name'] for c in colls])
+        view = NameView(self.main.sidebar, [c['name'] for c in colls], 'Collections')
         self.main.add_sidebar(view, 'collections')
 
     def toggle_collections(self, event):
