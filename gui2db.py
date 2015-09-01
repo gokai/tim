@@ -18,12 +18,16 @@ class Gui2Db(object):
         self.main = main
         self.all_ids = {}
 
-    def search_tags(self, tags):
-        files = self.db.search_by_tags(tags)
+    def _create_gallery(self, files):
         paths = [os.path.join(d['path'], d['name']) for d in files]
+        paths = set(paths)
         gal = gallery_with_slideshow(self.main.root, sorted(paths), self.main.new_view)
         self.main.new_view(gal)
         self.fill_all_ids(gal)
+
+    def search_tags(self, tags):
+        files = self.db.search_by_tags(tags)
+        self._create_gallery(files)
 
     def fill_all_ids(self, gallery):
         pathset = set(gallery.paths).difference(self.all_ids.keys())
@@ -48,7 +52,15 @@ class Gui2Db(object):
                 accept_func = 
                 lambda ts, o: 
                     self.search_tags(ts.split(','))
-            )
+        )
+
+    def search_collection(self, event):
+        collections = self.main.get_sidebar_view('collections').selection()
+        files = []
+        for collection in collections:
+            tags = self.db.get_collection_tags(collection)
+            files.extend(self.db.search_by_tags(tags))
+        self._create_gallery(files)
 
     def add_tags_from_tagview(self, event, tagview):
         db_ids = self.ids_from_gallery(self.main.get_current_view())
