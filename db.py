@@ -88,6 +88,21 @@ class FileDatabase(object):
                 ids[filename] = None
         return ids
 
+    def generate_file_ids(self, filenames):
+        """A generator method that yields (path, id) pairs.
+           filenames  An iterable of absolute paths to the files."""
+        cursor = self.connection.cursor()
+        for filename in filenames:
+            cursor.execute("""SELECT files.id FROM files, paths
+                    WHERE paths.id = files.path AND
+                    paths.name = ? AND files.name = ?""", 
+                    os.path.split(filename))
+            row = cursor.fetchone()
+            if row is not None:
+                yield (filename, row[0])
+            else:
+                yield (filename, None)
+
     def get_tag_ids(self, tags):
         """Returns a dictionary of tag ids to be passed to other methods.
            tags  An iterable of tag names."""
@@ -115,6 +130,7 @@ class FileDatabase(object):
                         GROUP BY file_tags.file_id""")
         res = [dict(row) for row in cursor]
         cursor.execute("DROP TABLE tmp_file_ids")
+        self.connection.commit()
         return res
 
     def create_tags(self, tags):

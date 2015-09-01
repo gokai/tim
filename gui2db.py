@@ -1,6 +1,7 @@
 import os
 import logging
 from mimetypes import guess_type
+from time import process_time
 logger = logging.getLogger(__name__)
 
 from tkinter.filedialog import askopenfilenames, askdirectory
@@ -15,11 +16,28 @@ class Gui2Db(object):
     def __init__(self, db, main):
         self.db = db
         self.main = main
+        self.all_ids = {}
 
     def search_tags(self, tags):
         files = self.db.search_by_tags(tags)
         paths = [os.path.join(d['path'], d['name']) for d in files]
-        self.main.new_view(gallery_with_slideshow(self.main.root, paths, self.main.new_view))
+        gal = gallery_with_slideshow(self.main.root, sorted(paths), self.main.new_view)
+        self.main.new_view(gal)
+        self.fill_all_ids(gal)
+
+    def fill_all_ids(self, gallery):
+        pathset = set(gallery.paths).difference(self.all_ids.keys())
+        id_generator = self.db.generate_file_ids(sorted(pathset))
+
+        def add_next_id():
+            try:
+                pair = next(id_generator)
+                self.all_ids[pair[0]] = pair[1]
+                self.main.root.after_idle(add_next_id)
+            except StopIteration:
+                pass
+
+        self.main.root.after_idle(add_next_id)
 
     def search_event(self, event):
         tags = event.widget.view.selection()
@@ -141,14 +159,16 @@ class Gui2Db(object):
             removed = self.db.remove_deleted_files()
             showinfo('Removed files.', 
                     "The following files have been removed:\n{}".format('\n'.join(removed)))
+        return
 
     def show_selection_tags(self, event=None):
         if len(self.main.views) == 0:
             return
-        selection = self.ids_from_gallery(self.main.get_current_view())
+        gallery = self.main.get_current_view()
+        selection = gallery.selection()
         if len(selection) == 0:
             return
-        fids = tuple(selection.values())
+        fids = (self.all_ids[p] for p in selection)
         tags = self.db.get_file_tags(fids)
         tagset = set(tags[0]['tags'].split(','))
         tagset.intersection_update(*[t['tags'].split(',') for t in tags])
@@ -168,18 +188,20 @@ class Gui2Db(object):
         if (self.main.get_sidebar_view('selection_tags') is None
            or self.main.get_current_view() is None):
             return
-        selection = self.ids_from_gallery(self.main.get_current_view())
+        gallery = self.main.get_current_view()
+        selection = gallery.selection()
         if len(selection) == 0:
             self.main.remove_sidebar_view('selection_tags')
             return
         tagview = self.main.get_sidebar_view('selection_tags')
-        fids = tuple(selection.values())
+        fids = (self.all_ids[p] for p in selection)
         new_tags = self.db.get_file_tags(fids)
         if len(new_tags) == 0:
             self.main.remove_sidebar_view('selection_tags')
             return
         tags = set(new_tags[0]['tags'].split(','))
-        tags.intersection_update(*[t['tags'].split(',') for t in new_tags])
+        for tl in new_tags:
+            tags.intersection_update(tl['tags'].split(','))
         tagview.set(tags)
 
     def add_collection(self):
