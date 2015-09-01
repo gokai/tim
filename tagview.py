@@ -33,7 +33,6 @@ class NameView(object):
         kb.make_bindings(kb.tagview, actions, self._tree.bind)
         self._iids = dict()
         self._names = dict()
-        logger.debug('Names: %s', names)
         self.widget.focus_set = self._tree.focus_set
         for name in sorted(names):
             iid = self._tree.insert('', 'end', text=name)
