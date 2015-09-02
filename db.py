@@ -2,12 +2,13 @@
 # A simple database class to handle tagging files.
 
 #TODO: return values?
-#TODO: a fix for os.path.commonprefix
 
 import sqlite3
 import os
 import datetime
 import tarfile
+import shutil
+import tempfile
 import csv
 import logging
 logger = logging.getLogger(__name__)
@@ -391,25 +392,46 @@ class FileDatabase(object):
         cursor.execute("""DELETE FROM tags WHERE id = ?""", (ids[tag2], ))
         self.connection.commit()
 
-    def export_collection(self, collection):
+    def export_collection(self, collection, to_dir=os.path.curdir, tmp_location=None):
         """Creates an archive with all files and metadata of a collection.
-           The achive is a gzipped tar containing the metadata file and 
+           The archive is a gzipped tar containing the metadata file and 
            the seperate files in their directories."""
-        with open(collection + ".csv", 'w', newline='') as collfile:
-            writer = csv.writer(collfile, dialect=ExportDialect())
-            writer.writerow(["name", "relpath", "tags"])
-            files = self.list_files_in_collection(collection)
-            pathlist = [f["path"] for f in files]
-            common_root = os.path.commonprefix(pathlist)
-            for path in pathlist:
-                if "/media/files/kuvat/muut/instructor" not in path:
-                    print(path)
-            for f in files:
-                tags = self.get_file_tags(f["id"])
-                relpath = os.path.relpath(f["path"], common_root)
-                writer.writerow([f["name"], relpath, ','.join(tags)])
+        prev_wd = os.getcwd()
+        with tempfile.TemporaryDirectory(dir=tmp_location) as tmp_dir:
+            os.chdir(tmp_dir)
+            archivename = collection + ".tar.gz"
+            with tarfile.open(archivename, "w:gz") as archive:
+                fname = collection + ".csv"
+                with open(fname, 'w', newline='') as collfile:
+                    writer = csv.writer(collfile, dialect=ExportDialect())
+                    writer.writerow(["name", "relpath", "tags"])
+                    writer.writerow(["tt", "__COLLECTION__", ",".join(self.get_collection_tags(collection))])
+                    files = self.list_files_in_collection(collection)
+                    pathlist = [f["path"] for f in files]
+                    common_root = find_common_root(pathlist)
+                    tags = self.get_file_tags(f["id"] for f in files)
+                    for f_ind, f in enumerate(files):
+                        relpath = os.path.relpath(f["path"], common_root)
+                        tagstring = tags[f_ind]["tags"]
+                        writer.writerow([f["name"], relpath, tagstring])
+                        if not os.path.exists(relpath):
+                            os.makedirs(relpath)
+                        shutil.copyfile(os.path.join(f["path"], f["name"]),
+                                        os.path.join(os.path.curdir, relpath, f["name"]))
+                        archive.add(os.path.join(os.path.curdir, relpath, f["name"]))
+                archive.add(fname)
+                shutil.copyfile(fname, os.path.join(prev_wd, fname))
+            os.chdir(prev_wd)
+            shutil.copyfile(os.path.join(tmp_dir, archivename), os.path.join(to_dir, archivename))
 
     def import_collection(self, filename, common_root="."):
         """Adds an exported collection and its files to the database."""
         pass
+
+def find_common_root(paths):
+    prefix = os.path.commonprefix(paths)
+    root = prefix
+    if not os.path.isdir(prefix):
+        root = os.path.dirname(prefix)
+    return root
 
