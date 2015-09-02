@@ -424,9 +424,39 @@ class FileDatabase(object):
             os.chdir(prev_wd)
             shutil.copyfile(os.path.join(tmp_dir, archivename), os.path.join(to_dir, archivename))
 
-    def import_collection(self, filename, common_root="."):
+    def import_collection(self, filename, file_dir):
         """Adds an exported collection and its files to the database."""
-        pass
+        collname = os.path.splitext(os.path.basename(filename))[0]
+        collname = os.path.splitext(collname)[0]
+        prev_wd = os.getcwd()
+        fileinfos = []
+        coll_tags = []
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            os.chdir(tmp_dir)
+            with tarfile.open(os.path.join(prev_wd, filename), 'r:gz') as archive:
+                coll = collname + '.csv'
+                archive.extract(coll)
+                with open(coll, 'r', newline='') as collfile:
+                    # Since csv.reader does not support lineterminator
+                    # a custom iterator is needed
+                    content = collfile.read()
+                    reader = csv.reader((r for r in content.split(ExportDialect.lineterminator)),
+                            dialect=ExportDialect())
+                    for index, row in enumerate(reader):
+                        if len(row) != 3 or index == 0:
+                            continue
+                        elif row[1] == '__COLLECTION__':
+                            coll_tags = row[2].split(',')
+                        elif not os.path.isabs(row[1]):
+                            f_path = os.path.join(file_dir, row[1])
+                            if not os.path.exists(f_path):
+                                os.makedirs(f_path)
+                            archive.extract(os.path.join(os.path.curdir, row[1], row[0]), path=file_dir)
+                            fileinfos.append({'name':os.path.join(f_path, row[0]), 'tags':row[2].split(',')})
+            os.chdir(prev_wd)
+        self.add_files(fileinfos)
+        self.add_collection(collname, coll_tags)
+
 
 def find_common_root(paths):
     prefix = os.path.commonprefix(paths)
