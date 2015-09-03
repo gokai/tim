@@ -435,8 +435,8 @@ class FileDatabase(object):
             os.chdir(tmp_dir)
             with tarfile.open(os.path.join(prev_wd, filename), 'r:gz') as archive:
                 coll = collname + '.csv'
-                archive.extract(coll)
-                with open(coll, 'r', newline='') as collfile:
+                archive.extract(coll, path=tmp_dir)
+                with open(os.path.join(tmp_dir, coll), 'r', newline='') as collfile:
                     # Since csv.reader does not support lineterminator
                     # a custom iterator is needed
                     content = collfile.read()
