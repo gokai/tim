@@ -21,6 +21,24 @@ Collections are a way to group tags and use those groups to
 find images. Basically they are stored search queries.
 Export and import enable sharing images and their tags.
 
+## Requierments
+
+Tested on Python 3.4.3, anything newer than 3.3 should work.
+Possibly even earlier 3.x versions. Python 2.x is not supported.
+
+-   pillow (python imaging library fork)
+-   tkinter (often distributed with Python)
+-   Python standard library(sometimes some parts are distributed
+    separately)
+
+## Installation
+
+Clone the repository with
+
+```
+git clone https://github.com/gokai/tim.git
+```
+
 ## Usage
 
 Run 
