@@ -49,6 +49,8 @@ appwide = {
         '<Alt-c>':'toggle_collections',
         '<Control-Shift-S>':'tagstring_search',
         '<Alt-a>':'add_to_collections',
+        '<Alt-e>':'export_collections',
+        '<Alt-i>':'import_collections',
 }
 
 # Bindings for the tagview on the sidebar

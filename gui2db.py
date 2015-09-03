@@ -258,3 +258,42 @@ class Gui2Db(object):
         else:
             self.main.text_query('Add to collection(s): ', '', lambda coll_s, o: add(coll_s.split(',')))
 
+    def export_collections(self, event):
+        all_collections = self.db.list_collections()
+        collnames = [c['name'] for c in all_collections]
+        def accept_cb(coll_str, orig):
+            colls = coll_str.split(',')
+            if len(colls) > 0:
+                directory = askdirectory(title='Select destination directory.')
+                for coll in colls:
+                    if coll in collnames:
+                        self.db.export_collection(coll,to_dir=directory)
+                        showinfo('Collection export', 'Collection {} exported'.format(coll))
+                    else:
+                        showwarning('Collection export', 'Collection {} does not exist'.format(coll))
+
+        collview = self.main.get_sidebar_view('collections')
+        selected = []
+        if collview is not None:
+            selected = collview.selection()
+        self.main.text_query('Export collections: ', ','.join(selected), accept_cb)
+
+    def import_collections(self, event):
+        all_collections = self.db.list_collections()
+        collnames = [c['name'] for c in all_collections]
+        filenames = askopenfilenames(defaultextension='.tar.gz', 
+                filetypes=[('Gzipped tar', '*.tar.gz')], title='Import collections')
+        for fname in filenames:
+            name = os.path.basename(fname)
+            name = name.split('.')[0]
+            if name in collnames:
+                showwarning('Import collection.', 'Collection named {} already exists, not importing.'.format(name))
+            else:
+                directory = askdirectory(title='Select directory for images in collection {}'.format(name))
+                if directory != '':
+                    self.db.import_collection(fname, directory)
+                    tagview = self.main.get_sidebar_view('main_tags')
+                    tagview.set(self.db.list_tags())
+                    showinfo('Import collection.', 'Collection {} imported'.format(name))
+
+
