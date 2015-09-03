@@ -278,3 +278,22 @@ class Gui2Db(object):
             selected = collview.selection()
         self.main.text_query('Export collections: ', ','.join(selected), accept_cb)
 
+    def import_collections(self, event):
+        all_collections = self.db.list_collections()
+        collnames = [c['name'] for c in all_collections]
+        filenames = askopenfilenames(defaultextension='.tar.gz', 
+                filetypes=[('Gzipped tar', '*.tar.gz')], title='Import collections')
+        for fname in filenames:
+            name = os.path.basename(fname)
+            name = name.split('.')[0]
+            if name in collnames:
+                showwarning('Import collection.', 'Collection named {} already exists, not importing.'.format(name))
+            else:
+                directory = askdirectory(title='Select directory for images in collection {}'.format(name))
+                if directory != '':
+                    self.db.import_collection(fname, directory)
+                    tagview = self.main.get_sidebar_view('main_tags')
+                    tagview.set(self.db.list_tags())
+                    showinfo('Import collection.', 'Collection {} imported'.format(name))
+
+

@@ -56,6 +56,7 @@ if __name__ == "__main__":
         'help': lambda e: mainview.new_view(HelpView(mainview.root)),
         'add_to_collections': glue.add_to_collections,
         'export_collections': glue.export_collections,
+        'import_collections': glue.import_collections,
     }
     keybindings.make_bindings(keybindings.appwide, actions, mainview.root.bind_all)
     buttons = {
