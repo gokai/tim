@@ -41,16 +41,22 @@ git clone https://github.com/gokai/tim.git
 
 ## Usage
 
-Run 
+On Linux make sure `tim.py` is executable and run
 
 ```
-tim.py [database]
+./tim.py [database]
 ```
 
 The database argument is the filename of the database to use.
 If the file exists it has to be a valid TIM database or the
-program will crash.
-If the file does not exist it will be created.
+program will crash. If the file does not exist it will be created.
+
+When database is not given "master.sqlite" in the current working
+directory is used.
+
+For testing purposes you can also use ":memory:" to create an
+in-memory database. This functions exactly like a normal database,
+except it will disappear when you close the program.
 
 ## Database
 
