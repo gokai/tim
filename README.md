@@ -11,15 +11,15 @@ The tag information is stored in an SQLite database.
 -   Thumbnail view of the images 
 -   Full size view of images
 -   Searching images by tags
+-   Export and import collections
 -   Fully usable by keyboard(mostly implemented)
 -   Fully usable by mouse(partially implemented)
 -   Collections(partially implemented)
--   Export and import collections(not implemented)
 -   Open images in another program(not implemented)
 
 Collections are a way to group tags and use those groups to
 find images. Basically they are stored search queries.
-Export and import will enable sharing images and their tags.
+Export and import enable sharing images and their tags.
 
 ## Usage
 
