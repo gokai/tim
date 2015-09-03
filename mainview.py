@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 from tkinter import Tk, Menu, N, S, W, E, HORIZONTAL, Toplevel, StringVar
 from tkinter.ttk import PanedWindow, Entry, Label, Frame, Button, Notebook
 
-from tkgraphics import gallery_with_slideshow
 from tagview import TagView
 from gui2db import Gui2Db
 
@@ -50,6 +49,8 @@ class Main(object):
         self.tabs.enable_traversal()
         self.paned_win.add(self.tabs, weight=5)
         self.root = self.tabs
+        self.bind_all = self.root.bind_all
+        self.bind = self.root.bind
 
     def add_menubutton(self, label, action):
         button = Button(self.menubar, text=label, command=action)

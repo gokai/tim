@@ -4,9 +4,6 @@ import os
 import logging
 logger = logging.getLogger(__name__)
 
-import keybindings as kb
-from tkgraphics import Gallery
-
 class NameView(object):
     """Shows a treeview of unique names."""
 
@@ -23,14 +20,7 @@ class NameView(object):
         self.widget.rowconfigure(1,weight=1)
         self._tree.column('name', width=50)
         self._tree['show'] = 'tree'
-        actions = {'edit': lambda e: self.edit(),
-                'search': lambda e: self.search(),
-                'focus_next': lambda e: self.focus_next(),
-                'focus_prev': lambda e: self.focus_prev(),
-                'select': lambda e: self._tree.selection_toggle(self._tree.focus()),
-                'clear_selection': lambda e: self._tree.selection_set([])
-                }
-        kb.make_bindings(kb.tagview, actions, self._tree.bind)
+        self.widget.bind = self._tree.bind
         self._iids = dict()
         self._names = dict()
         self.widget.focus_set = self._tree.focus_set
@@ -42,11 +32,18 @@ class NameView(object):
         self._tree['yscrollcommand'] = self._scroll.set
         self._scroll.grid(row=1, column=1, sticky=(N, S))
         self.widget.columnconfigure(1, weight=0)
+        self.bind = self._tree.bind
 
 
     def selection(self):
         logger.debug('Selection: %s', self._tree.selection())
         return [self._names[iid] for iid in self._tree.selection()]
+
+    def select(self):
+        self._tree.selection_toggle(self._tree.focus())
+
+    def clear_selection(self):
+        self._tree.selection_set([])
 
     def edit(self):
         self._tree.event_generate('<<NameViewEdit>>')

@@ -17,16 +17,14 @@ except ImportError:
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 
-import keybindings as kb
-
 Cursor = namedtuple('Cursor', ['column', 'row', 'prev_item'])
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
-def gallery_with_slideshow(root, paths, new_view):
-    gal = Gallery(root, paths, (250,250), 
-        lambda s: new_view(SlideShow(root, s)))
-    return gal
+def gallery_creator(new_view, gallery_binder_func, slide_binder_func):
+    return lambda root, paths: Gallery(root, paths, (250, 250),
+            lambda s: new_view(SlideShow(root, s, slide_binder_func)),
+            gallery_binder_func)
 
 # Change DecompressionBombWarning in to an error
 # allows better handling.
@@ -34,7 +32,7 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 class SlideShow(object):
 
-    def __init__(self, root, paths, pos=0):
+    def __init__(self, root, paths, binder_func, pos=0):
         self.paths = paths
         self.img = paths[pos]
         self.pos = pos
@@ -42,9 +40,8 @@ class SlideShow(object):
         self.root = root
         self.make_view()
         self.widget.bind('<Expose>', lambda e: self.reload())
-        actions = {'next':lambda e: self.next(), 'prev':lambda e: self.prev(),
-                'reload':lambda e: self.reload()}
-        kb.make_bindings(kb.slideshow, actions, self.widget.bind)
+        self.bind = self.widget.bind
+        binder_func(self)
 
     def reload(self):
         w = self.root.winfo_width()
@@ -107,7 +104,7 @@ class SlideShow(object):
 class Gallery(object):
     LIMIT = 1000
 
-    def __init__(self, root, paths, thumb_size, activate_func):
+    def __init__(self, root, paths, thumb_size, activate_func, binder_func):
         """thumb_size = (w, h)"""
         self.paths = paths
         self.thumb_w = thumb_size[0]
@@ -117,25 +114,20 @@ class Gallery(object):
         self.widget = Frame(root, takefocus=1)
         self.make_view()
         self.make_bindings()
+        binder_func(self)
         self.activate_func = activate_func
         self._canvas.configure(takefocus=1)
         self.loaded = 0
 
+    def bind(self, *args, **kwargs):
+        self._canvas.bind(*args, **kwargs)
+        self.widget.bind(*args, **kwargs)
+
     def make_bindings(self):
         self._canvas.bind('<Configure>', lambda e: self.reload())
-        actions = {'slide': self.activate,
-                'clear_selection': lambda e: self.clear_selection(),
-                'toggle_selection': self.toggle_selection,
-                'cursor_up':self.cursor_up,
-                'cursor_right':self.cursor_right,
-                'cursor_left':self.cursor_left,
-                'cursor_down':self.cursor_down,
-                'load_more':lambda e: self.continue_loading()}
         self._canvas.bind('<Button-4>', self.scroll)
         self._canvas.bind('<Button-5>', self.scroll)
         self._canvas.bind('<MouseWheel>', self.scroll)
-        kb.make_bindings(kb.gallery, actions, self.widget.bind)
-        kb.make_bindings(kb.gallery, actions, self._canvas.bind)
 
     def make_view(self):
         self.style = Style()

@@ -8,20 +8,20 @@ from tkinter.filedialog import askopenfilenames, askdirectory
 from tkinter.messagebox import askyesno, showwarning, showinfo
 from tkinter.simpledialog import askstring
 
-from tkgraphics import gallery_with_slideshow
 from dialog import ListDialog
 from tagview import TagView, NameView
 
 class Gui2Db(object):
-    def __init__(self, db, main):
+    def __init__(self, db, main, gallery_func):
         self.db = db
         self.main = main
         self.all_ids = {}
+        self.gallery_func = gallery_func
 
     def _create_gallery(self, files):
         paths = [os.path.join(d['path'], d['name']) for d in files]
         paths = set(paths)
-        gal = gallery_with_slideshow(self.main.root, sorted(paths), self.main.new_view)
+        gal = self.gallery_func(self.main.root, sorted(paths))
         self.main.new_view(gal)
         self.fill_all_ids(gal)
 
@@ -173,7 +173,7 @@ class Gui2Db(object):
                     "The following files have been removed:\n{}".format('\n'.join(removed)))
         return
 
-    def show_selection_tags(self, event=None):
+    def show_selection_tags(self, bind_func):
         if len(self.main.views) == 0:
             return
         gallery = self.main.get_current_view()
@@ -185,6 +185,7 @@ class Gui2Db(object):
         tagset = set(tags[0]['tags'].split(','))
         tagset.intersection_update(*[t['tags'].split(',') for t in tags])
         view = TagView(self.main.sidebar, tuple(tagset), 'Selection tags')
+        bind_func(view)
         self.main.add_sidebar(view, 'selection_tags')
 
     def _toggle(self, name, show):
@@ -193,8 +194,8 @@ class Gui2Db(object):
         else:
             show()
 
-    def toggle_selection_tags(self, event):
-        self._toggle('selection_tags', self.show_selection_tags)
+    def toggle_selection_tags(self, event, bind_func):
+        self._toggle('selection_tags', lambda : self.show_selection_tags(bind_func))
 
     def update_selection_tags(self, event):
         if (self.main.get_sidebar_view('selection_tags') is None
@@ -234,15 +235,16 @@ class Gui2Db(object):
             self.db.remove_collection(name)
         self.main.text_query('Remove collection: ', '', remove_callback)
 
-    def show_collections(self):
+    def show_collections(self, bind_func):
         colls = self.db.list_collections()
         if len(colls) == 0:
             return
         view = NameView(self.main.sidebar, [c['name'] for c in colls], 'Collections')
+        bind_func(view)
         self.main.add_sidebar(view, 'collections')
 
-    def toggle_collections(self, event):
-        self._toggle('collections', self.show_collections)
+    def toggle_collections(self, event, bind_func):
+        self._toggle('collections', lambda : self.show_collections(bind_func))
 
     def add_to_collections(self, event):
         sidebar = self.main.get_sidebar_view('collections')
