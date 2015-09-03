@@ -258,3 +258,23 @@ class Gui2Db(object):
         else:
             self.main.text_query('Add to collection(s): ', '', lambda coll_s, o: add(coll_s.split(',')))
 
+    def export_collections(self, event):
+        all_collections = self.db.list_collections()
+        collnames = [c['name'] for c in all_collections]
+        def accept_cb(coll_str, orig):
+            colls = coll_str.split(',')
+            if len(colls) > 0:
+                directory = askdirectory(title='Select destination directory.')
+                for coll in colls:
+                    if coll in collnames:
+                        self.db.export_collection(coll,to_dir=directory)
+                        showinfo('Collection export', 'Collection {} exported'.format(coll))
+                    else:
+                        showwarning('Collection export', 'Collection {} does not exist'.format(coll))
+
+        collview = self.main.get_sidebar_view('collections')
+        selected = []
+        if collview is not None:
+            selected = collview.selection()
+        self.main.text_query('Export collections: ', ','.join(selected), accept_cb)
+
