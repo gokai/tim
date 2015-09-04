@@ -49,8 +49,6 @@ class Main(object):
         self.tabs.enable_traversal()
         self.paned_win.add(self.tabs, weight=5)
         self.root = self.tabs
-        self.bind_all = self.root.bind_all
-        self.bind = self.root.bind
 
     def add_menubutton(self, label, action):
         button = Button(self.menubar, text=label, command=action)
@@ -134,9 +132,7 @@ class Main(object):
             entry.insert(0, original_text)
         entry.original_value = original_text
         entry.grid(column=1, row=0, sticky=(N,S,W,E))
-        kb.make_bindings(kb.text_query, 
-                {'accept': self.accept_query,
-                 'cancel': lambda e: self.close_query()}, entry.bind)
+        kb.bind('text_query', (self, ), entry.bind)
 
         frame.grid(column=self._menucolumn, row=0)
         self._menucolumn += 1

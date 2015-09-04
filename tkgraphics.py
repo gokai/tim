@@ -17,14 +17,15 @@ except ImportError:
 from PIL import Image
 from PIL.ImageTk import PhotoImage
 
+import keybindings as kb
+
 Cursor = namedtuple('Cursor', ['column', 'row', 'prev_item'])
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
-def gallery_creator(new_view, gallery_binder_func, slide_binder_func):
+def gallery_creator(new_view):
     return lambda root, paths: Gallery(root, paths, (250, 250),
-            lambda s: new_view(SlideShow(root, s, slide_binder_func)),
-            gallery_binder_func)
+            lambda s: new_view(SlideShow(root, s)))
 
 # Change DecompressionBombWarning in to an error
 # allows better handling.
@@ -32,7 +33,7 @@ warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 class SlideShow(object):
 
-    def __init__(self, root, paths, binder_func, pos=0):
+    def __init__(self, root, paths, pos=0):
         self.paths = paths
         self.img = paths[pos]
         self.pos = pos
@@ -40,8 +41,7 @@ class SlideShow(object):
         self.root = root
         self.make_view()
         self.widget.bind('<Expose>', lambda e: self.reload())
-        self.bind = self.widget.bind
-        binder_func(self)
+        kb.bind('slideshow', (self, ), self.widget.bind)
 
     def reload(self):
         w = self.root.winfo_width()
@@ -104,7 +104,7 @@ class SlideShow(object):
 class Gallery(object):
     LIMIT = 1000
 
-    def __init__(self, root, paths, thumb_size, activate_func, binder_func):
+    def __init__(self, root, paths, thumb_size, activate_func):
         """thumb_size = (w, h)"""
         self.paths = paths
         self.thumb_w = thumb_size[0]
@@ -114,7 +114,6 @@ class Gallery(object):
         self.widget = Frame(root, takefocus=1)
         self.make_view()
         self.make_bindings()
-        binder_func(self)
         self.activate_func = activate_func
         self._canvas.configure(takefocus=1)
         self.loaded = 0
@@ -124,6 +123,7 @@ class Gallery(object):
         self.widget.bind(*args, **kwargs)
 
     def make_bindings(self):
+        kb.bind('gallery', (self, ), self.bind)
         self._canvas.bind('<Configure>', lambda e: self.reload())
         self._canvas.bind('<Button-4>', self.scroll)
         self._canvas.bind('<Button-5>', self.scroll)
@@ -149,7 +149,7 @@ class Gallery(object):
         self._scroll.grid(row=0, column=1, sticky=(N,S))
         self.widget.columnconfigure(1, weight=0)
         self.max_columns = self.calculate_max_columns()
-        self.widget.after(100, self.load_next)
+        self.widget.after(50, self.load_next)
 
     def activate(self, e):
         self.activate_func(self.selection())
@@ -200,7 +200,7 @@ class Gallery(object):
             self.repos = 0
             self.repos_col = 0
             self.repos_row = 0
-            self._canvas.after_idle(self.reposition_next)
+            self._canvas.after(50, self.reposition_next)
 
     def reposition_next(self):
         if len(self.photos) > 0:
@@ -223,7 +223,7 @@ class Gallery(object):
             self.repos_col = 0
         if self.repos < len(self.photos) - 1:
             self.repos += 1
-            self.widget.after_idle(self.reposition_next)
+            self.widget.after(50, self.reposition_next)
         else:
             new_x, new_y = self.calculate_pos(self.repos_col, self.repos_row)
             self._canvas.coords('loadbutton', new_x, new_y)
@@ -267,7 +267,7 @@ class Gallery(object):
             self.column = 0
         if self.load_pos < len(self.paths) - 1 and self.loaded < self.LIMIT:
             self.load_pos += 1
-            self.widget.after_idle(self.load_next)
+            self.widget.after(50, self.load_next)
         elif self.loaded >= self.LIMIT:
             self.loaded = 0
             x, y = self.calculate_pos(self.column, self.row)
@@ -280,7 +280,7 @@ class Gallery(object):
         if self.load_pos < len(self.paths) - 1:
             self.load_pos += 1
             self._canvas.delete('loadbutton')
-            self._canvas.after_idle(self.load_next)
+            self._canvas.after(50, self.load_next)
 
     def cursor_to_index(self, row, column):
         return row * self.max_columns + column 

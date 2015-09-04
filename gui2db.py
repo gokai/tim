@@ -37,7 +37,7 @@ class Gui2Db(object):
             try:
                 pair = next(id_generator)
                 self.all_ids[pair[0]] = pair[1]
-                self.main.root.after_idle(add_next_id)
+                self.main.root.after(50, add_next_id)
             except StopIteration:
                 pass
 
@@ -173,7 +173,7 @@ class Gui2Db(object):
                     "The following files have been removed:\n{}".format('\n'.join(removed)))
         return
 
-    def show_selection_tags(self, bind_func):
+    def show_selection_tags(self):
         if len(self.main.views) == 0:
             return
         gallery = self.main.get_current_view()
@@ -185,7 +185,6 @@ class Gui2Db(object):
         tagset = set(tags[0]['tags'].split(','))
         tagset.intersection_update(*[t['tags'].split(',') for t in tags])
         view = TagView(self.main.sidebar, tuple(tagset), 'Selection tags')
-        bind_func(view)
         self.main.add_sidebar(view, 'selection_tags')
 
     def _toggle(self, name, show):
@@ -194,8 +193,8 @@ class Gui2Db(object):
         else:
             show()
 
-    def toggle_selection_tags(self, event, bind_func):
-        self._toggle('selection_tags', lambda : self.show_selection_tags(bind_func))
+    def toggle_selection_tags(self, event):
+        self._toggle('selection_tags', lambda : self.show_selection_tags())
 
     def update_selection_tags(self, event):
         if (self.main.get_sidebar_view('selection_tags') is None
@@ -235,16 +234,15 @@ class Gui2Db(object):
             self.db.remove_collection(name)
         self.main.text_query('Remove collection: ', '', remove_callback)
 
-    def show_collections(self, bind_func):
+    def show_collections(self):
         colls = self.db.list_collections()
         if len(colls) == 0:
             return
         view = NameView(self.main.sidebar, [c['name'] for c in colls], 'Collections')
-        bind_func(view)
         self.main.add_sidebar(view, 'collections')
 
-    def toggle_collections(self, event, bind_func):
-        self._toggle('collections', lambda : self.show_collections(bind_func))
+    def toggle_collections(self, event):
+        self._toggle('collections', lambda : self.show_collections())
 
     def add_to_collections(self, event):
         sidebar = self.main.get_sidebar_view('collections')

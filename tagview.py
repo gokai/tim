@@ -4,6 +4,7 @@ import os
 import logging
 logger = logging.getLogger(__name__)
 
+import keybindings as kb
 class NameView(object):
     """Shows a treeview of unique names."""
 
@@ -32,7 +33,7 @@ class NameView(object):
         self._tree['yscrollcommand'] = self._scroll.set
         self._scroll.grid(row=1, column=1, sticky=(N, S))
         self.widget.columnconfigure(1, weight=0)
-        self.bind = self._tree.bind
+        kb.bind('nameview', (self, ), self._tree.bind)
 
 
     def selection(self):
