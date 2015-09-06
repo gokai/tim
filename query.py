@@ -37,7 +37,10 @@ class ListStringQuery:
         selection = self.nameview.selection()
         content = self.entry.get()
         items = content.split(',')
-        items[-1] = selection[0]
+        if len(items) > 0:
+            items[-1] = selection[0]
+        else:
+            items.append(selection[0])
         self.text_var.set(','.join(items))
         self.entry.focus_set()
         self.entry.icursor(END)
