@@ -9,13 +9,15 @@ __ = {
     'mainview': lambda mainview, glue: {
         'quit' : lambda e: mainview.quit(),
         'delete_view': mainview.delete_current_view,
-        'add_tags' : lambda e: mainview.text_query('Add tags: '),
+        'add_tags' : lambda e: mainview.text_query('Add tags: ',
+            complete_list=mainview.get_sidebar_view('main_tags').get_names()),
         'add_selected_tags': lambda e: glue.add_tags_from_tagview(e, tview),
         'add_images' : glue.add_files,
         'add_folder' : glue.add_directory,
         'remove_tags': glue.remove_tags_from_files,
         'jump_to_tag': lambda e: mainview.text_query('Jump to tag: ',
-            accept_func=lambda t, o: jump_to_tag(mainview, t, o)),
+            accept_func=lambda t, o: jump_to_tag(mainview, t, o),
+            complete_list=mainview.get_sidebar_view('main_tags').get_names()),
         'focus_sidebar': lambda e: mainview.focus_sidebar(),
         'focus_main_view': lambda e: mainview.focus_main_view(),
         'toggle_selection_tags': glue.toggle_selection_tags,
@@ -49,9 +51,10 @@ __ = {
         'prev':lambda e: slide.prev(),
         'reload':lambda e: slide.reload()
     },
-    'text_query': lambda mainview: {
-        'accept': mainview.accept_query,
-        'cancel': lambda e: mainview.close_query(),
+    'text_query': lambda query: {
+        'accept': query.accept,
+        'cancel': query.cancel,
+        'complete_item': query.accept_completion,
     },
 }
 

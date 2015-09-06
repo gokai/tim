@@ -49,9 +49,8 @@ class Gui2Db(object):
 
     def search_tagstring(self, event):
         self.main.text_query('Search with tags: ', 
-                accept_func = 
-                lambda ts, o: 
-                    self.search_tags(ts.split(','))
+                accept_func = lambda ts, o: self.search_tags(ts.split(',')),
+                complete_list = self.main.get_sidebar_view('main_tags').get_names()
         )
 
     def search_collection(self, event):

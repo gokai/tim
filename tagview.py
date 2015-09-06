@@ -24,6 +24,7 @@ class NameView(object):
         self.widget.bind = self._tree.bind
         self._iids = dict()
         self._names = dict()
+        self._filtered = list()
         self.widget.focus_set = self._tree.focus_set
         for name in sorted(names):
             iid = self._tree.insert('', 'end', text=name)
@@ -35,6 +36,21 @@ class NameView(object):
         self.widget.columnconfigure(1, weight=0)
         kb.bind('nameview', (self, ), self._tree.bind)
 
+    def filter(self, prefix):
+        """Only show names starting with prefix."""
+        self.clear_filter()
+        if prefix == '':
+            return
+        for name in self._iids:
+            if not name.startswith(prefix):
+                iid = self._iids[name]
+                index = self._tree.index(iid)
+                self._tree.detach(iid)
+                self._filtered.append((iid, index))
+
+    def clear_filter(self):
+        self.set(sorted(self._iids))
+        self._filtered = list()
 
     def selection(self):
         logger.debug('Selection: %s', self._tree.selection())

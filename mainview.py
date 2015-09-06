@@ -10,6 +10,7 @@ from tkinter.ttk import PanedWindow, Entry, Label, Frame, Button, Notebook
 
 from tagview import TagView
 from gui2db import Gui2Db
+from query import ListStringQuery
 
 import keybindings as kb
 
@@ -105,39 +106,28 @@ class Main(object):
 
     def close_query(self):
         if self._query is not None:
-            self._query.event_generate('<<MainQueryClose>>')
-            self._query.destroy()
+            self.remove_sidebar_view('__query__')
+            self._query.widget.event_generate('<<MainQueryClose>>')
+            self._query.widget.destroy()
             self._query = None
             self._accept_func = None
-            self._menucolumn -= 1
 
     def accept_query(self, event):
         if self._query is not None:
             if self._accept_func is not None:
                 self._accept_func(event.widget.get(), event.widget.original_value)
-                self.close_query()
             else:
                 event.widget.event_generate('<<MainQueryAccept>>')
+            self.close_query()
 
-    def text_query(self, query_lable, original_text=None, accept_func=None):
+    def text_query(self, query_label, original_text=None, accept_func=None, complete_list=None):
         if self._query is not None:
             return
-        frame = Frame(self.menubar)
-        label = Label(frame, text=query_lable)
-        label.grid(column=0, row=0, sticky=(N, S))
+        self._query = ListStringQuery(self.sidebar, query_label, original_text, complete_list)
+        self.root.bind_all('<<ListStringQueryAccept>>', self.accept_query)
+        self.root.bind_all('<<ListStringQueryCancel>>', lambda e: self.close_query())
+        self.add_sidebar(self._query, '__query__')
         self._accept_func = accept_func
-
-        entry = Entry(frame)
-        if original_text is not None:
-            entry.insert(0, original_text)
-        entry.original_value = original_text
-        entry.grid(column=1, row=0, sticky=(N,S,W,E))
-        kb.bind('text_query', (self, ), entry.bind)
-
-        frame.grid(column=self._menucolumn, row=0)
-        self._menucolumn += 1
-        entry.focus_set()
-        self._query = frame
 
     def get_current_view(self):
         if self.tabs.index('end') > 0:
