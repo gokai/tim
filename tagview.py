@@ -92,7 +92,8 @@ class NameView(object):
         next_iid = self._tree.next(cur_iid)
         if next_iid == '':
             iids = self._tree.get_children()
-            next_iid = iids[0]
+            if len(iids) > 0:
+                next_iid = iids[0]
         self._focus(next_iid)
 
     def focus_prev(self):
@@ -100,7 +101,8 @@ class NameView(object):
         prev_iid = self._tree.prev(cur_iid)
         if prev_iid == '':
             iids = self._tree.get_children()
-            prev_iid = iids[-1]
+            if len(iids) > 0:
+                prev_iid = iids[-1]
         self._focus(prev_iid)
 
     def jump_to(self, name):
