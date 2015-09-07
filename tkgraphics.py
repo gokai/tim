@@ -103,6 +103,7 @@ class SlideShow(object):
     
 class Gallery(object):
     LIMIT = 1000
+    DELAY = 50
 
     def __init__(self, root, paths, thumb_size, activate_func):
         """thumb_size = (w, h)"""
@@ -149,7 +150,7 @@ class Gallery(object):
         self._scroll.grid(row=0, column=1, sticky=(N,S))
         self.widget.columnconfigure(1, weight=0)
         self.max_columns = self.calculate_max_columns()
-        self.widget.after(50, self.load_next)
+        self.widget.after(self.DELAY, self.load_next)
 
     def activate(self, e):
         self.activate_func(self.selection())
@@ -200,7 +201,7 @@ class Gallery(object):
             self.repos = 0
             self.repos_col = 0
             self.repos_row = 0
-            self._canvas.after(50, self.reposition_next)
+            self._canvas.after(self.DELAY, self.reposition_next)
 
     def reposition_next(self):
         if len(self.photos) > 0:
@@ -223,7 +224,7 @@ class Gallery(object):
             self.repos_col = 0
         if self.repos < len(self.photos) - 1:
             self.repos += 1
-            self.widget.after(50, self.reposition_next)
+            self.widget.after(self.DELAY, self.reposition_next)
         else:
             new_x, new_y = self.calculate_pos(self.repos_col, self.repos_row)
             self._canvas.coords('loadbutton', new_x, new_y)
@@ -267,7 +268,7 @@ class Gallery(object):
             self.column = 0
         if self.load_pos < len(self.paths) - 1 and self.loaded < self.LIMIT:
             self.load_pos += 1
-            self.widget.after(50, self.load_next)
+            self.widget.after(self.DELAY, self.load_next)
         elif self.loaded >= self.LIMIT:
             self.loaded = 0
             x, y = self.calculate_pos(self.column, self.row)
@@ -280,7 +281,7 @@ class Gallery(object):
         if self.load_pos < len(self.paths) - 1:
             self.load_pos += 1
             self._canvas.delete('loadbutton')
-            self._canvas.after(50, self.load_next)
+            self._canvas.after(self.DELAY, self.load_next)
 
     def cursor_to_index(self, row, column):
         return row * self.max_columns + column 
