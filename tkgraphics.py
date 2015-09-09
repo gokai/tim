@@ -365,12 +365,14 @@ class Gallery(object):
         elif state == 'active':
             color = 'red'
 
-        old_rect = getattr(item, 'rectangle_id', '')
-        if old_rect != '':
-            self._canvas.delete(old_rect)
-        bbox = self._canvas.bbox(item.cid)
-        item.rectangle_id = self._canvas.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], outline=color, width=8)
-        self._canvas.tag_lower(item.rectangle_id, item.cid)
+        rect = getattr(item, 'rectangle_id', '')
+        if rect == '':
+            bbox = self._canvas.bbox(item.cid)
+            item.rectangle_id = self._canvas.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3],
+                    outline=color, fill=color,stipple='gray25', width=8)
+            self._canvas.tag_raise(item.rectangle_id, item.cid)
+        else:
+            self._canvas.itemconfigure(rect, outline=color, fill=color)
 
     def view_item(self, item):
         self._canvas['scrollregion'] = self._canvas.bbox('all')
