@@ -164,7 +164,7 @@ class Gallery(object):
         paths = [self.paths[self.photos[i].path_index] for i in self._selection]
         photo_index = self.cursor_to_index(self.cursor.row, self.cursor.column)
         if photo_index not in self._selection:
-            paths.append(self.paths[self.photos[index].path_index])
+            paths.append(self.paths[self.photos[photo_index].path_index])
         return paths
 
     def clear_selection(self):
@@ -211,7 +211,7 @@ class Gallery(object):
                 bbox = self._canvas.bbox(photo.cid)
                 self._canvas.coords(rectangle, bbox[0], bbox[1], bbox[2], bbox[3])
             if self.repos == self.cursor.prev_item:
-                self.cursor = Cursor(self.repos_col, self.repos_row, self.repos, self.cursor,cid)
+                self.cursor = Cursor(self.repos_col, self.repos_row, self.repos, self.cursor.cid)
             col, row = self.repos_col, self.repos_row
             self._canvas.tag_bind(photo.cid, '<Button-1>',
                     lambda e: self.button_callback(e, photo, col, row))
