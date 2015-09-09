@@ -44,6 +44,7 @@ class ListStringQuery:
         self.text_var.set(','.join(items))
         self.entry.focus_set()
         self.entry.icursor(END)
+        self.entry.after(1, lambda : self.entry.xview(END))
         # Prevents the event from propagating further.
         return 'break'
 
