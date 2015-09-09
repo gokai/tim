@@ -103,7 +103,7 @@ class SlideShow(object):
     
 class Gallery(object):
     LIMIT = 1000
-    DELAY = 50
+    DELAY = 100
 
     def __init__(self, root, paths, thumb_size, activate_func):
         """thumb_size = (w, h)"""
@@ -161,11 +161,10 @@ class Gallery(object):
 
     def selection(self):
         logger.debug('selection %s', str(self._selection))
-        paths = [self.paths[i] for i in self._selection]
+        paths = [self.paths[self.photos[i].path_index] for i in self._selection]
         photo_index = self.cursor_to_index(self.cursor.row, self.cursor.column)
-        index = self.photos[photo_index].index
-        if index not in self._selection:
-            paths.append(self.paths[index])
+        if photo_index not in self._selection:
+            paths.append(self.paths[self.photos[index].path_index])
         return paths
 
     def clear_selection(self):
@@ -176,8 +175,7 @@ class Gallery(object):
 
     def toggle_selection(self, event):
         photo_index = self.cursor_to_index(self.cursor.row, self.cursor.column)
-        index = self.photos[photo_index].index
-        if index in self._selection:
+        if photo_index in self._selection:
             self.selection_remove(self.photos[photo_index])
         else:
             self.selection_add(self.photos[photo_index])
@@ -251,7 +249,8 @@ class Gallery(object):
             self.photos.append(photo)
             x, y = self.calculate_pos(self.column, self.row)
             photo.cid = self._canvas.create_image(x, y, image=photo)
-            photo.index = self.load_pos
+            photo.index = len(self.photos) - 1
+            photo.path_index = self.load_pos
             self._canvas.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
             self._canvas.tag_bind(photo.cid, '<Double-Button-1>', self.activate)
             self._canvas.addtag_withtag('photo', photo.cid)
