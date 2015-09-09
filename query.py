@@ -35,17 +35,18 @@ class ListStringQuery:
 
     def accept_completion(self, event=None):
         selection = self.nameview.selection()
-        content = self.entry.get()
-        items = content.split(',')
-        if len(items) > 0:
-            items[-1] = selection[0]
-        else:
-            items.append(selection[0])
-        self.text_var.set(','.join(items))
-        self.entry.focus_set()
-        self.entry.icursor(END)
-        self.entry.after(1, lambda : self.entry.xview(END))
-        # Prevents the event from propagating further.
+        if len(selection) > 0:
+            content = self.entry.get()
+            items = content.split(',')
+            if len(items) > 0:
+                items[-1] = selection[0]
+            else:
+                items.append(selection[0])
+            self.text_var.set(','.join(items))
+            self.entry.focus_set()
+            self.entry.icursor(END)
+            self.entry.after(1, lambda : self.entry.xview(END))
+            # Prevents the event from propagating further.
         return 'break'
 
     def accept(self, event):
