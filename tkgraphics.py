@@ -19,7 +19,7 @@ from PIL.ImageTk import PhotoImage
 
 import keybindings as kb
 
-Cursor = namedtuple('Cursor', ['column', 'row', 'prev_item'])
+Cursor = namedtuple('Cursor', ['column', 'row', 'prev_item', 'cid'])
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
@@ -144,7 +144,7 @@ class Gallery(object):
         self.load_pos = 0
         self.row = 0
         self.column = 0
-        self.cursor = Cursor(-1,-1,-1)
+        self.cursor = Cursor(-1,-1,-1, '')
         self._scroll = Scrollbar(self.widget, command=self._canvas.yview, takefocus=0)
         self._canvas['yscrollcommand'] = self._scroll.set
         self._scroll.grid(row=0, column=1, sticky=(N,S))
@@ -211,7 +211,7 @@ class Gallery(object):
                 bbox = self._canvas.bbox(photo.cid)
                 self._canvas.coords(rectangle, bbox[0], bbox[1], bbox[2], bbox[3])
             if self.repos == self.cursor.prev_item:
-                self.cursor = Cursor(self.repos_col, self.repos_row, self.repos)
+                self.cursor = Cursor(self.repos_col, self.repos_row, self.repos, self.cursor,cid)
             col, row = self.repos_col, self.repos_row
             self._canvas.tag_bind(photo.cid, '<Button-1>',
                     lambda e: self.button_callback(e, photo, col, row))
@@ -335,8 +335,20 @@ class Gallery(object):
         self.set_cursor(item, column, row)
 
     def set_cursor(self, item, column, row, index=None):
-        self.set_state(item, 'active')
-        self.cursor = Cursor(column, row, index or row*self.max_columns + column)
+        cid = self.cursor.cid
+        bbox = self._canvas.bbox(item.cid)
+        if cid == '':
+            color = 'red'
+            cid = self._canvas.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3],
+                    outline=color, fill=color, stipple='gray12', width=3)
+        else:
+            self._canvas.coords(cid,bbox[0], bbox[1], bbox[2], bbox[3])
+        rect = getattr(item, 'rectangle_id', None)
+        if rect is not None:
+            self._canvas.tag_raise(cid, rect)
+        else:
+            self._canvas.tag_raise(cid, item.cid)
+        self.cursor = Cursor(column, row, index or row*self.max_columns + column, cid)
         logger.debug('cursor: %s', str(self.cursor))
         self._canvas.event_generate('<<GallerySelectionChanged>>')
         self.view_item(item)
@@ -362,14 +374,12 @@ class Gallery(object):
         color = ''
         if state == 'selected':
             color = 'blue'
-        elif state == 'active':
-            color = 'red'
 
         rect = getattr(item, 'rectangle_id', '')
         if rect == '':
             bbox = self._canvas.bbox(item.cid)
             item.rectangle_id = self._canvas.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3],
-                    outline=color, fill=color,stipple='gray25', width=8)
+                    outline=color, fill=color,stipple='gray75', width=10)
             self._canvas.tag_raise(item.rectangle_id, item.cid)
         else:
             self._canvas.itemconfigure(rect, outline=color, fill=color)
