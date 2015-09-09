@@ -16,6 +16,9 @@ files = (
     "keybindings.py",
     "helpview.py",
     "dialog.py",
+    "query.py",
+    "actions.py",
+    "keys.ini",
     "README.md",
     "UNLICENSE",
 )
