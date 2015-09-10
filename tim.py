@@ -18,13 +18,7 @@ if __name__ == "__main__":
         dbname = sys.argv[1]
     logging.debug('Database: %s', dbname)
 
-    run_init = False
-    if not os.path.exists(dbname):
-        logging.debug('run init on %s', dbname)
-        run_init = True
     db = FileDatabase(dbname)
-    if run_init:
-        db.initialize()
     mainview = Main('TIM - Tagged Image Manager')
 
     glue = Gui2Db(db, mainview, 

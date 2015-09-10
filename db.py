@@ -33,38 +33,38 @@ class FileDatabase(object):
     def __init__(self, dbname):
         """Connects to a database with the name dbname.
            dbname  name of the database file.
-           If creating a new file call initialize afterwards.
         """
         self.connection = sqlite3.connect(dbname)
         self.connection.row_factory = sqlite3.Row
         cursor = self.connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         self.connection.commit()
+        self.initialize()
 
     def initialize(self):
         """Creates the tables used into the database file."""
         cursor = self.connection.cursor()
         cursor.execute("BEGIN")
-        cursor.execute("""CREATE TABLE paths(id INTEGER PRIMARY KEY,
+        cursor.execute("""CREATE TABLE IF NOT EXISTS paths(id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE ON CONFLICT IGNORE)""")
-        cursor.execute("""CREATE TABLE files(id INTEGER PRIMARY KEY,
+        cursor.execute("""CREATE TABLE IF NOT EXISTS files(id INTEGER PRIMARY KEY,
             name TEXT NOT NULL, path INTEGER NOT NULL, date INTEGER NOT NULL,
             FOREIGN KEY(path) REFERENCES paths(id)
             ON UPDATE CASCADE ON DELETE CASCADE)""")
         # If a tag is added with a name already in the database
         # -> IGNORE since the tag is already present.
-        cursor.execute("""CREATE TABLE tags(id INTEGER PRIMARY KEY,
+        cursor.execute("""CREATE TABLE IF NOT EXISTS tags(id INTEGER PRIMARY KEY,
             name TEXT NOT NULL UNIQUE ON CONFLICT IGNORE)""")
-        cursor.execute("""CREATE TABLE file_tags(
+        cursor.execute("""CREATE TABLE IF NOT EXISTS file_tags(
             file_id INTEGER NOT NULL, tag_id INTEGER NOT NULL,
             FOREIGN KEY(file_id) REFERENCES files(id) 
             ON DELETE CASCADE ON UPDATE CASCADE,
             FOREIGN KEY(tag_id) REFERENCES tags(id) 
             ON DELETE CASCADE ON UPDATE CASCADE)""")
-        cursor.execute("""CREATE TABLE collections(
+        cursor.execute("""CREATE TABLE IF NOT EXISTS collections(
             id INTEGER PRIMARY KEY, 
             name TEXT NOT NULL UNIQUE ON CONFLICT IGNORE)""")
-        cursor.execute("""CREATE TABLE collection_tags(
+        cursor.execute("""CREATE TABLE IF NOT EXISTS collection_tags(
             collection_id INTEGER NOT NULL, tag_id INTEGER NOT NULL,
             FOREIGN KEY(collection_id) REFERENCES collections(id)
             ON DELETE CASCADE ON UPDATE CASCADE,
