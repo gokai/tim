@@ -235,8 +235,10 @@ class FileDatabase(object):
         return res
 
     def search_by_tags(self, tags, search_type = SEARCH_EXCLUSIVE):
-        """Returns a list of all files that have any of the tags given.
-           tags  an iterable with the tag names searched."""
+        """Returns a list of all files that have the tags given.
+           tags         an iterable with the tag names searched.
+           search_type  if SEARCH_EXCLUSIVE requires exact match of tags
+                        for a file to be returned"""
         cursor = self.connection.cursor()
         query = """SELECT files.id AS id, files.name AS name, paths.name AS path,
                           files.date AS date, group_concat(tags.name) AS tags,
