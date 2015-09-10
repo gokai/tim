@@ -184,7 +184,6 @@ class Gallery(object):
 
     def button_callback(self, event, item, column, row):
         prev_item = self.photos[self.cursor.prev_item]
-        self.remove_cursor(prev_item, event.state)
         self.set_cursor(item, column, row)
 
     def scroll(self, event):
@@ -322,8 +321,6 @@ class Gallery(object):
 
     def move_cursor(self, column, row, state = 0x0):
         prev_item = self.photos[self.cursor.prev_item]
-        if self.cursor.prev_item != -1:
-            self.remove_cursor(prev_item, state)
         new_index = self.cursor_to_index(row, column)
         if new_index >= len(self.photos):
             row, column = self.max_cursor_position()
@@ -354,12 +351,6 @@ class Gallery(object):
         logger.debug('cursor: %s', str(self.cursor))
         self._canvas.event_generate('<<GallerySelectionChanged>>')
         self.view_item(item)
-
-    def remove_cursor(self, item, state):
-        if item.index in self._selection:
-            self.set_state(item, 'selected')
-        else:
-            self.set_state(item, 'normal')
 
     def selection_add(self, item):
         self._selection.add(item.index)
