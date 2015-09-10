@@ -161,9 +161,11 @@ class Gallery(object):
 
     def selection(self):
         logger.debug('selection %s', str(self._selection))
-        paths = [self.paths[self.photos[i].path_index] for i in self._selection]
+        paths = list()
+        if len(self._selection) > 0:
+            paths.extend([self.paths[self.photos[i].path_index] for i in self._selection])
         photo_index = self.cursor_to_index(self.cursor.row, self.cursor.column)
-        if photo_index not in self._selection:
+        if photo_index not in self._selection and self.cursor.row != -1:
             paths.append(self.paths[self.photos[photo_index].path_index])
         return paths
 
