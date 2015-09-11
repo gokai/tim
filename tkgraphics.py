@@ -118,6 +118,7 @@ class Gallery(object):
         self.activate_func = activate_func
         self._canvas.configure(takefocus=1)
         self.loaded = 0
+        self._select_mode = False
 
     def bind(self, *args, **kwargs):
         self._canvas.bind(*args, **kwargs)
@@ -321,6 +322,8 @@ class Gallery(object):
 
     def move_cursor(self, column, row, state = 0x0):
         prev_item = self.photos[self.cursor.prev_item]
+        if self._select_mode:
+            self.selection_add(prev_item)
         new_index = self.cursor_to_index(row, column)
         if new_index >= len(self.photos):
             row, column = self.max_cursor_position()
@@ -351,6 +354,9 @@ class Gallery(object):
         logger.debug('cursor: %s', str(self.cursor))
         self._canvas.event_generate('<<GallerySelectionChanged>>')
         self.view_item(item)
+
+    def toggle_select_mode(self):
+        self._select_mode = not self._select_mode
 
     def selection_add(self, item):
         self._selection.add(item.index)

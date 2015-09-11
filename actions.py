@@ -41,6 +41,7 @@ __ = {
         'slide': gallery.activate,
         'clear_selection': lambda e: gallery.clear_selection(),
         'toggle_selection': gallery.toggle_selection,
+        'toggle_select_mode': lambda e: gallery.toggle_select_mode(),
         'cursor_up':gallery.cursor_up,
         'cursor_right':gallery.cursor_right,
         'cursor_left':gallery.cursor_left,
