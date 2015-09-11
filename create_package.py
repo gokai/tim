@@ -18,6 +18,7 @@ files = (
     "dialog.py",
     "query.py",
     "actions.py",
+    "editview.py",
     "keys.ini",
     "README.md",
     "UNLICENSE",

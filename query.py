@@ -30,8 +30,7 @@ class ListStringQuery:
         self.widget.columnconfigure(1, weight=1)
         self.widget.rowconfigure(1, weight=1)
         kb.bind('text_query', (self, ), self.entry.bind)
-
-        self.entry.focus_set()
+        self.entry.icursor(END)
 
     def accept_completion(self, event=None):
         selection = self.nameview.selection()

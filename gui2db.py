@@ -10,6 +10,7 @@ from tkinter.simpledialog import askstring
 
 from dialog import ListDialog
 from tagview import TagView, NameView
+from editview import CollectionEditView
 
 class Gui2Db(object):
     def __init__(self, db, main, gallery_func):
@@ -256,6 +257,29 @@ class Gui2Db(object):
             add(collections)
         else:
             self.main.text_query('Add to collection(s): ', '', lambda coll_s, o: add(coll_s.split(',')))
+
+    def edit_collection(self, event):
+        sidebar = self.main.get_sidebar_view('collections')
+        collection = sidebar.selection()[0]
+        tags = self.db.get_collection_tags(collection)
+        all_tags = self.db.list_tags()
+        view = CollectionEditView(self.main.sidebar, collection, tags, all_tags, self.update_collection)
+        self.main.add_sidebar(view, 'collection_edit')
+
+    def update_collection(self, editview):
+        old_tags = editview.old_tags
+        old_name = editview.old_name
+        new_tags = editview.new_tags()
+        new_name = editview.new_name()
+        if old_name != new_name:
+            self.db.rename_collection(old_name, new_name)
+        if new_tags != old_tags:
+            remove_tags = set(old_tags).difference(new_tags)
+            add_tags = set(new_tags).difference(old_tags)
+            if len(remove_tags) > 0:
+                self.db.remove_tags_from_collection(new_name, remove_tags)
+            if len(add_tags) > 0:
+                self.db.add_tags_to_collection(new_name, add_tags)
 
     def export_collections(self, event):
         all_collections = self.db.list_collections()

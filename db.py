@@ -271,6 +271,18 @@ class FileDatabase(object):
                 ((item, tag_ids[key]) for key in tag_ids.keys()))
         self.connection.commit()
 
+    def remove_tags_from_collection(self, name, tags):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT id FROM collections WHERE name = ?", (name,))
+        row = cursor.fetchone()
+        if row is None:
+            return
+        item = row[0]
+        tag_ids = self.get_tag_ids(tags)
+        cursor.executemany("DELETE FROM collection_tags WHERE collection_id = ? AND tag_id = ?",
+                ((item, tag_ids[key]) for key in tag_ids))
+
+
     def add_collection(self, name, tags):
         cursor = self.connection.cursor()
         cursor.execute("INSERT INTO collections(name) values(?)", (name,))

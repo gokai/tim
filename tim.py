@@ -46,6 +46,8 @@ if __name__ == "__main__":
     mainview.root.bind_all('<<SlideShowPrev>>', glue.update_selection_tags)
     mainview.root.bind_all('<<MainViewChanged>>', glue.update_selection_tags)
     mainview.root.bind_all('<<NameViewSearch>>', glue.search_collection)
+    mainview.root.bind_all('<<NameViewEdit>>', glue.edit_collection)
+    mainview.root.bind_all('<<CollectionEditClose>>', lambda e: mainview.remove_sidebar_view('collection_edit'))
 
     mainview.add_sidebar(tview, 'main_tags')
     mainview.display()

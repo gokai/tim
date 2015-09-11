@@ -107,6 +107,8 @@ class Main(object):
     def close_query(self):
         if self._query is not None:
             self.remove_sidebar_view('__query__')
+            self.root.unbind('<<ListStringQueryAccept>>')
+            self.root.unbind('<<ListStringQueryCancel>>')
             self._query.widget.event_generate('<<MainQueryClose>>')
             self._query.widget.destroy()
             self._query = None
@@ -127,6 +129,7 @@ class Main(object):
         self.root.bind_all('<<ListStringQueryAccept>>', self.accept_query)
         self.root.bind_all('<<ListStringQueryCancel>>', lambda e: self.close_query())
         self.add_sidebar(self._query, '__query__')
+        self._query.entry.focus_set()
         self._accept_func = accept_func
 
     def get_current_view(self):

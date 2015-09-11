@@ -58,6 +58,11 @@ __ = {
         'cancel': query.cancel,
         'complete_item': query.accept_completion,
     },
+    'collection_edit': lambda editview: {
+        'accept': editview.accept,
+        'cancel': editview.cancel,
+        'focus_other_entry': editview.switch_focus,
+    },
 }
 
 
