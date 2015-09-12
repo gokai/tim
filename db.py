@@ -311,21 +311,17 @@ class FileDatabase(object):
         else:
             return
 
-    def _list_names(self, table):
-        """Returns a list of names in a table."""
-        cursor = self.connection.cursor()
-        # table name can not contain a ;
-        if ';' in table:
-            return []
-        cursor.execute("SELECT name FROM " + table)
-        res = list()
-        for t in cursor:
-            res.append(t[0])
-        return res
-
     def list_tags(self):
         """Returns a list of all tags in the database."""
-        return self._list_names("tags")
+        cursor = self.connection.cursor()
+        cursor.execute("""SELECT tags.name AS name, COUNT(file_tags.file_id) AS file_count
+                       FROM tags, file_tags
+                       WHERE tags.id = file_tags.tag_id
+                       GROUP BY tags.id""")
+        ret = list()
+        for row in cursor:
+            ret.append({'name':row[0], 'file_count':row[1]})
+        return ret
 
     def list_collections(self):
         """Returns a list of all collection data in the database."""
@@ -334,11 +330,13 @@ class FileDatabase(object):
                         FROM collections, tags, collection_tags
                         WHERE collections.id = collection_tags.collection_id AND
                         tags.id = collection_tags.tag_id
-                        GROUP BY collections.id""")
+                        GROUP BY collections.id
+                        ORDER BY collections.id""")
         ret = list()
         for row in cursor:
             if row[0] is not None:
-                ret.append({'name':row[0], 'tags':row[1]})
+                ret.append({'name':row[0], 'tags':row[1],
+                    'file_count': len(self.search_by_tags(row[1].split(',')))})
         return ret
 
     def list_files_in_collection(self, collection):

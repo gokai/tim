@@ -238,7 +238,11 @@ class Gui2Db(object):
         colls = self.db.list_collections()
         if len(colls) == 0:
             return
-        view = NameView(self.main.sidebar, [c['name'] for c in colls], 'Collections')
+        names, counts = list(), list()
+        for c in colls:
+            names.append(c['name'])
+            counts.append(c['file_count'])
+        view = NameView(self.main.sidebar, names, 'Collections', counts)
         self.main.add_sidebar(view, 'collections')
 
     def toggle_collections(self, event):

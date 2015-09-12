@@ -8,26 +8,29 @@ import keybindings as kb
 class NameView(object):
     """Shows a treeview of unique names."""
 
-    def __init__(self, master, names, title=""):
+    def __init__(self, master, names, title="", counts=None):
         self.widget = Frame(master)
         if title != "":
             self.title = Label(self.widget, text=title) 
             self.title.grid(row=0, column=0)
-        self._tree = Treeview(self.widget, columns='name')
+        self._tree = Treeview(self.widget, columns='count')
         self._tree.grid(row=1, column=0, sticky=(N,S,W,E))
         self._tree.view = self
         self.widget.columnconfigure(0, weight=1)
         self.widget.rowconfigure(0,weight=0)
         self.widget.rowconfigure(1,weight=1)
-        self._tree.column('name', width=50)
+        self._tree.column('count', width=5)
         self._tree['show'] = 'tree'
         self.widget.bind = self._tree.bind
         self._iids = dict()
         self._names = dict()
         self._filtered = list()
         self.widget.focus_set = self._tree.focus_set
-        for name in sorted(names):
-            iid = self._tree.insert('', 'end', text=name)
+        for i, name in enumerate(names):
+            c = 0
+            if counts is not None:
+                c = counts[i]
+            iid = self._tree.insert('', 'end', text=name, values=(c,))
             self._names[iid] = name
             self._iids[name] = iid
         self._scroll = Scrollbar(self.widget, command=self._tree.yview)
@@ -129,7 +132,11 @@ class NameView(object):
 class TagView(NameView):
 
     def __init__(self, master, tags, title=""):
-        super(TagView, self).__init__(master, tags, title)
+        names, counts = list(), list()
+        for t in sorted(tags, key=lambda s: s['name']):
+            names.append(t['name'])
+            counts.append(t['file_count'])
+        super(TagView, self).__init__(master, names, title, counts)
 
     def append_tags(self, tags):
         tags = tuple(set(tags))
