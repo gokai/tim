@@ -27,7 +27,7 @@ def resize(image, target_height, target_width):
 
 def gallery_creator(new_view):
     return lambda root, paths: Gallery(root, paths, (250, 250),
-            lambda s: new_view(SlideShow(root, s)))
+            lambda s, a: new_view(SlideShow(root, s, a)))
 
 # Change DecompressionBombWarning in to an error
 # allows better handling.
@@ -156,7 +156,10 @@ class Gallery(object):
         self.widget.after(self.DELAY, self.load_next)
 
     def activate(self, e):
-        self.activate_func(self.selection())
+        photo_index = self.cursor_to_index(self.cursor.row, self.cursor.column)
+        selection = self.selection()
+        active_index = selection.index(self.paths[self.photos[photo_index].path_index])
+        self.activate_func(selection, active_index)
         self._canvas.focus_set()
 
     def get_path(self, item_id):
@@ -165,11 +168,11 @@ class Gallery(object):
     def selection(self):
         logger.debug('selection %s', str(self._selection))
         paths = list()
-        if len(self._selection) > 0:
-            paths.extend([self.paths[self.photos[i].path_index] for i in self._selection])
         photo_index = self.cursor_to_index(self.cursor.row, self.cursor.column)
         if photo_index not in self._selection and self.cursor.row != -1:
             paths.append(self.paths[self.photos[photo_index].path_index])
+        if len(self._selection) > 0:
+            paths.extend([self.paths[self.photos[i].path_index] for i in self._selection])
         return paths
 
     def clear_selection(self):
