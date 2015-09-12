@@ -63,7 +63,7 @@ class NameView(object):
         self._tree.selection_toggle(self._tree.focus())
 
     def clear_selection(self):
-        self._tree.selection_set([])
+        self._tree.selection_set('')
 
     def edit(self):
         self._tree.event_generate('<<NameViewEdit>>')

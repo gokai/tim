@@ -35,7 +35,7 @@ __ = {
         'focus_next': lambda e: nameview.focus_next(),
         'focus_prev': lambda e: nameview.focus_prev(),
         'select': lambda e: nameview.select(),
-        'clear_selection': lambda e: nameview.select(),
+        'clear_selection': lambda e: nameview.clear_selection(),
     },
     'gallery' : lambda gallery: { 
         'slide': gallery.activate,
