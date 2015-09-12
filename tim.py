@@ -25,7 +25,11 @@ if __name__ == "__main__":
             gallery_creator(mainview.new_view))
 
     tags = db.list_tags()
-    tview = TagView(mainview.sidebar, tags, "Tags")
+    names, counts = list(), list()
+    for t in sorted(tags, key=lambda s: s['name']):
+        names.append(t['name'])
+        counts.append(t['file_count'])
+    tview = TagView(mainview.sidebar, names, "Tags", counts)
     keybindings.bind('mainview', (mainview, glue), mainview.root.bind_all)
     buttons = {
             'Add collection': glue.add_collection,
