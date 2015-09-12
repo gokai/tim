@@ -101,6 +101,10 @@ class SlideShow(object):
     def selection(self):
         return [self.paths[self.pos],]
 
+    def close(self):
+        if self._tid is not None:
+            self.widget.after_cancel(self._tid)
+
 
     
 class Gallery(object):
@@ -122,6 +126,8 @@ class Gallery(object):
         self._canvas.configure(takefocus=1)
         self.loaded = 0
         self._select_mode = False
+        self._load_tid = None
+        self._repos_tid = None
 
     def bind(self, *args, **kwargs):
         self._canvas.bind(*args, **kwargs)
@@ -212,7 +218,7 @@ class Gallery(object):
             self.repos = 0
             self.repos_col = 0
             self.repos_row = 0
-            self._canvas.after(self.DELAY, self.reposition_next)
+            self._repos_tid = self.widget.after(self.DELAY, self.reposition_next)
 
     def reposition_next(self):
         if len(self.photos) > 0:
@@ -233,7 +239,7 @@ class Gallery(object):
             self.repos_col = 0
         if self.repos < len(self.photos) - 1:
             self.repos += 1
-            self.widget.after(self.DELAY, self.reposition_next)
+            self._repos_tid = self.widget.after(self.DELAY, self.reposition_next)
         else:
             new_x, new_y = self.calculate_pos(self.repos_col, self.repos_row)
             self._canvas.coords('loadbutton', new_x, new_y)
@@ -274,15 +280,17 @@ class Gallery(object):
         if self.column >= self.max_columns:
             self.row += 1
             self.column = 0
-        if self.load_pos < len(self.paths) - 1 and self.loaded < self.LIMIT:
+        if self.load_pos < len(self.paths) - 1 and self.loaded <= self.LIMIT:
             self.load_pos += 1
-            self.widget.after(self.DELAY, self.load_next)
+            self._load_tid = self.widget.after(self.DELAY, self.load_next)
         elif self.loaded >= self.LIMIT:
             self.loaded = 0
             x, y = self.calculate_pos(self.column, self.row)
             button = Button(self._canvas, text='Load More', command=self.continue_loading)
             cid = self._canvas.create_window(x, y, window=button)
             self._canvas.addtag_withtag('loadbutton', cid)
+        else:
+            self._load_tid = None
         self._canvas['scrollregion'] = self._canvas.bbox('all')
 
     def continue_loading(self):
@@ -402,4 +410,10 @@ class Gallery(object):
         bottom = bbox[3]
         if bottom > max_visible_y or top < min_visible_y:
             self._canvas.yview_moveto((top - self.thumb_h) / max_y)
+
+    def close(self):
+        if self._load_tid is not None:
+            self.widget.after_cancel(self._load_tid)
+        if self._repos_tid is not None:
+            self.widget.after_cancel(self._repos_tid)
 

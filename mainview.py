@@ -90,6 +90,7 @@ class Main(object):
         self.view_changed()
 
     def remove_view(self, view):
+        view.close()
         self.views.remove(view)
         self.tabs.forget(view.widget)
         if len(self.views) >= 1:

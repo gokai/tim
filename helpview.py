@@ -18,3 +18,6 @@ class HelpView(object):
         for key in keys:
             self.widget.insert(tid, 'end', values=[key, keys[key]])
 
+    def close(self):
+        pass
+
