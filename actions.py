@@ -46,7 +46,9 @@ __ = {
         'cursor_right':gallery.cursor_right,
         'cursor_left':gallery.cursor_left,
         'cursor_down':gallery.cursor_down,
-        'load_more':lambda e: gallery.continue_loading()
+        'load_more':lambda e: gallery.continue_loading(),
+        'scroll': gallery.button_callback,
+        'set_cursor': gallery.button_callback,
     },
     'slideshow' : lambda slide: {
         'next':lambda e: slide.next(),

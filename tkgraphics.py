@@ -19,6 +19,8 @@ from PIL.ImageTk import PhotoImage
 
 import keybindings as kb
 
+MouseWheelEvent = 38
+
 Cursor = namedtuple('Cursor', ['column', 'row', 'prev_item', 'cid'])
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
@@ -114,7 +116,8 @@ class Gallery(object):
         self._selection = set()
         self.widget = Frame(root, takefocus=1)
         self.make_view()
-        self.make_bindings()
+        kb.bind('gallery', (self, ), self.bind)
+        self._canvas.bind('<Configure>', lambda e: self.reload())
         self.activate_func = activate_func
         self._canvas.configure(takefocus=1)
         self.loaded = 0
@@ -123,13 +126,6 @@ class Gallery(object):
     def bind(self, *args, **kwargs):
         self._canvas.bind(*args, **kwargs)
         self.widget.bind(*args, **kwargs)
-
-    def make_bindings(self):
-        kb.bind('gallery', (self, ), self.bind)
-        self._canvas.bind('<Configure>', lambda e: self.reload())
-        self._canvas.bind('<Button-4>', self.scroll)
-        self._canvas.bind('<Button-5>', self.scroll)
-        self._canvas.bind('<MouseWheel>', self.scroll)
 
     def make_view(self):
         self.style = Style()
@@ -183,8 +179,23 @@ class Gallery(object):
         else:
             self.selection_add(self.photos[photo_index])
 
-    def button_callback(self, event, item, column, row):
-        prev_item = self.photos[self.cursor.prev_item]
+    def button_callback(self, event):
+        if event.num == 5 or event.num == 4 or event.type == MouseWheelEvent:
+            self.scroll(event)
+            return
+        x = self._canvas.canvasx(event.x)
+        y = self._canvas.canvasy(event.y)
+        cid = self._canvas.find_closest(x, y)[0]
+        def cmpr(p):
+            if p.cid != cid:
+                if hasattr(p, 'rectangle_id'):
+                    return p.rectangle_id == cid
+            else:
+                return True
+            return False
+        item = next(filter(cmpr, self.photos),
+            self.photos[self.cursor_to_index(self.cursor.row, self.cursor.column)])
+        row, column = divmod(item.index, self.max_columns)
         self.set_cursor(item, column, row)
 
     def scroll(self, event):
@@ -215,8 +226,6 @@ class Gallery(object):
             if self.repos == self.cursor.prev_item:
                 self.cursor = Cursor(self.repos_col, self.repos_row, self.repos, self.cursor.cid)
             col, row = self.repos_col, self.repos_row
-            self._canvas.tag_bind(photo.cid, '<Button-1>',
-                    lambda e: self.button_callback(e, photo, col, row))
             self.repos_col += 1
 
         if self.repos_col >= self.max_columns:
@@ -253,8 +262,6 @@ class Gallery(object):
             photo.cid = self._canvas.create_image(x, y, image=photo)
             photo.index = len(self.photos) - 1
             photo.path_index = self.load_pos
-            self._canvas.tag_bind(photo.cid, '<Button-1>', lambda e: self.button_callback(e, photo, col, row))
-            self._canvas.tag_bind(photo.cid, '<Double-Button-1>', self.activate)
             self._canvas.addtag_withtag('photo', photo.cid)
             self.column += 1
             self.loaded += 1
@@ -285,6 +292,8 @@ class Gallery(object):
             self._canvas.after(self.DELAY, self.load_next)
 
     def cursor_to_index(self, row, column):
+        if row == -1:
+            return 0
         return row * self.max_columns + column 
 
     def max_cursor_position(self):
