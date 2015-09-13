@@ -45,7 +45,7 @@ class ListStringQuery:
             self.entry.focus_set()
             self.entry.icursor(END)
             self.entry.after(1, lambda : self.entry.xview(END))
-            # Prevents the event from propagating further.
+        # Prevents the event from propagating further.
         return 'break'
 
     def accept(self, event):
@@ -55,9 +55,10 @@ class ListStringQuery:
         self.entry.event_generate('<<ListStringQueryCancel>>')
 
     def is_ok(self, content):
+        self.nameview.clear_selection()
         items = content.split(',')
         self.nameview.filter(items[-1])
-        self.nameview.focus_next()
+        self.nameview.focus_first()
         self.nameview.select()
         return True
 

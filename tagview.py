@@ -1,6 +1,7 @@
 from tkinter.ttk import Treeview, Frame, Scrollbar, Label
 from tkinter import N, S, W, E
 import os
+from itertools import repeat, dropwhile, takewhile
 import logging
 logger = logging.getLogger(__name__)
 
@@ -26,10 +27,7 @@ class NameView(object):
         self._names = dict()
         self._filtered = list()
         self.widget.focus_set = self._tree.focus_set
-        for i, name in enumerate(names):
-            c = ''
-            if counts is not None:
-                c = counts[i]
+        for name, c in zip(names, counts or repeat('')):
             iid = self._tree.insert('', 'end', text=name, values=(c,))
             self._names[iid] = name
             self._iids[name] = iid
@@ -49,10 +47,18 @@ class NameView(object):
                 iid = self._iids[name]
                 index = self._tree.index(iid)
                 self._tree.detach(iid)
-                self._filtered.append((iid, index))
+                self._filtered.append(iid)
 
     def clear_filter(self):
-        self.set(sorted(self._iids))
+        if len(self._filtered) == 0:
+            return
+        iids = sorted(self._names)
+        max_iid = max(self._filtered)
+        min_iid = min(self._filtered)
+        for n, iid in enumerate(takewhile(lambda i: i < min_iid, iids)):
+            self._tree.move(iid, '', n)
+        for iid in dropwhile(lambda i: i > max_iid, iids):
+            self._tree.move(iid, '', 'end')
         self._filtered = list()
 
     def selection(self):
@@ -73,11 +79,11 @@ class NameView(object):
             self._tree.selection_add(self._tree.focus())
         self._tree.event_generate('<<NameViewSearch>>')
 
-    def append(self, names):
+    def append(self, names, counts=None):
         logger.debug('Append names: %s', names)
-        for name in names:
+        for name, count in zip(names, counts or repeat('')):
             if name not in self._names.values():
-                iid = self._tree.insert('', 'end', text=name)
+                iid = self._tree.insert('', 'end', text=name, values=(count, ))
                 self._names[iid] = name
                 self._iids[name] = iid
 
@@ -108,6 +114,12 @@ class NameView(object):
                 prev_iid = iids[-1]
         self._focus(prev_iid)
 
+    def focus_first(self):
+        iids = self._tree.get_children()
+        if len(iids) > 0:
+            iid = self._tree.get_children()[0]
+            self._focus(iid)
+
     def jump_to(self, name):
         try:
             iid = self._iids[name]
@@ -118,12 +130,12 @@ class NameView(object):
     def get_names(self):
         return tuple(self._names.values())
 
-    def set(self, names):
+    def set(self, names, counts=None):
         self._tree.delete(*self._iids.values())
         self._iids.clear()
         self._names.clear()
-        for name in sorted(names):
-            iid = self._tree.insert('', 'end', text=name)
+        for name, count in zip(names, counts or repeat('')):
+            iid = self._tree.insert('', 'end', text=name, values=(count,))
             self._names[iid] = name
             self._iids[name] = iid
 
