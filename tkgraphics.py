@@ -342,8 +342,6 @@ class Gallery(object):
 
     def move_cursor(self, column, row, state = 0x0):
         prev_item = self.photos[self.cursor.prev_item]
-        if self._select_mode:
-            self.selection_add(prev_item)
         new_index = self.cursor_to_index(row, column)
         if new_index >= len(self.photos):
             row, column = self.max_cursor_position()
@@ -365,6 +363,8 @@ class Gallery(object):
                     outline=color, fill=color, stipple='gray12', width=3)
         else:
             self._canvas.coords(cid,bbox[0], bbox[1], bbox[2], bbox[3])
+        if self._select_mode:
+            self.selection_add(item)
         rect = getattr(item, 'rectangle_id', None)
         if rect is not None:
             self._canvas.tag_raise(cid, rect)
@@ -377,6 +377,9 @@ class Gallery(object):
 
     def toggle_select_mode(self):
         self._select_mode = not self._select_mode
+        if self._select_mode and self.cursor.cid != '':
+            ind = self.cursor_to_index(self.cursor.row, self.cursor.column)
+            self.selection_add(self.photos[ind])
 
     def selection_add(self, item):
         self._selection.add(item.index)
