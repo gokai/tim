@@ -87,6 +87,19 @@ class NameView(object):
                 self._names[iid] = name
                 self._iids[name] = iid
 
+    def update_counts(self, names, counts):
+        for name, count in zip(names, counts):
+            iid = self._iids[name]
+            self._tree.set(iid, column='count', value=count)
+
+    def get_count(self, name):
+        iid = self._iids[name]
+        count = self._tree.set(iid, column='count')
+        if count != '':
+            return int(count)
+        else:
+            return 0
+
     def delete(self, name):
         self._tree.delete(self._iids[name])
         del self._names[self._iids[name]]
