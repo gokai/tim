@@ -95,7 +95,7 @@ class Gui2Db(object):
         new_name = entry.get()
         old_name = entry.original_value
         new_name = new_name.strip()
-        if new_name in self.db.list_tags():
+        if new_name in (t['name'] for t in self.db.list_tags()):
             self.db.join_tags(new_name, old_name)
         else:
             self.db.rename_tags(((old_name, new_name), ))
@@ -223,7 +223,7 @@ class Gui2Db(object):
         tags = set(new_tags[0]['tags'].split(','))
         for tl in new_tags:
             tags.intersection_update(tl['tags'].split(','))
-        tagview.set(tags)
+        tagview.set(sorted(tags))
 
     def add_collection(self):
         tagview = self.main.get_sidebar_view('main_tags')
