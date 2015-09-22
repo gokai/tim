@@ -15,7 +15,7 @@ class ListStringQuery:
         self.text_var = StringVar()
         entry = None
         if complete_list is not None:
-            self.nameview = NameView(self.widget, complete_list)
+            self.nameview = NameView(self.widget, sorted(complete_list))
             self.nameview.widget.grid(row=1, column=0, columnspan=2, sticky=(N,S,W,E))
             ok_command = self.widget.register(self.is_ok)
             self.entry = Entry(self.widget, textvariable=self.text_var,

@@ -193,7 +193,7 @@ class Gui2Db(object):
         tags = self.db.get_file_tags(fids)
         tagset = set(tags[0]['tags'].split(','))
         tagset.intersection_update(*[t['tags'].split(',') for t in tags])
-        view = TagView(self.main.sidebar, tuple(tagset), 'Selection tags')
+        view = TagView(self.main.sidebar, sorted(tagset), 'Selection tags')
         self.main.add_sidebar(view, 'selection_tags')
 
     def _toggle(self, name, show):
