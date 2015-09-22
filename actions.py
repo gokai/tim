@@ -59,6 +59,8 @@ __ = {
         'accept': query.accept,
         'cancel': query.cancel,
         'complete_item': query.accept_completion,
+        'next_completion': query.next_completion,
+        'prev_completion': query.prev_completion,
     },
     'collection_edit': lambda editview: {
         'accept': editview.accept,

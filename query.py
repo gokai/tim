@@ -13,7 +13,6 @@ class ListStringQuery:
         label.grid(column=0, row=0, sticky=(N, S))
 
         self.text_var = StringVar()
-        entry = None
         if complete_list is not None:
             self.nameview = NameView(self.widget, sorted(complete_list))
             self.nameview.widget.grid(row=1, column=0, columnspan=2, sticky=(N,S,W,E))
@@ -22,6 +21,7 @@ class ListStringQuery:
                     validatecommand=(ok_command, '%P'), validate='key')
         else:
             self.entry = Entry(self.widget, textvariable=self.text_var)
+            self.nameview = None
 
         if original_text is not None:
             self.text_var.set(original_text)
@@ -33,20 +33,33 @@ class ListStringQuery:
         self.entry.icursor(END)
 
     def accept_completion(self, event=None):
-        selection = self.nameview.selection()
-        if len(selection) > 0:
-            content = self.entry.get()
-            items = content.split(',')
-            if len(items) > 0:
-                items[-1] = selection[0]
-            else:
-                items.append(selection[0])
-            self.text_var.set(','.join(items))
-            self.entry.focus_set()
-            self.entry.icursor(END)
-            self.entry.after(1, lambda : self.entry.xview(END))
-        # Prevents the event from propagating further.
-        return 'break'
+        if self.nameview is not None:
+            selection = self.nameview.selection()
+            if len(selection) > 0:
+                content = self.entry.get()
+                items = content.split(',')
+                if len(items) > 0:
+                    items[-1] = selection[0]
+                else:
+                    items.append(selection[0])
+                self.text_var.set(','.join(items))
+                self.entry.focus_set()
+                self.entry.icursor(END)
+                self.entry.after(3, lambda : self.entry.xview(END))
+            # Prevents the event from propagating further.
+            return 'break'
+
+    def next_completion(self, event):
+        if self.nameview is not None:
+            self.nameview.clear_selection()
+            self.nameview.focus_next()
+            self.nameview.select()
+
+    def prev_completion(self, event):
+        if self.nameview is not None:
+            self.nameview.clear_selection()
+            self.nameview.focus_prev()
+            self.nameview.select()
 
     def accept(self, event):
         self.entry.event_generate('<<ListStringQueryAccept>>')
