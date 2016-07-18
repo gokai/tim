@@ -122,6 +122,7 @@ class FileDatabase(object):
 
     def get_file_tags(self, fileids):
         cursor = self.connection.cursor()
+        cursor.execute("DROP TABLE IF EXISTS tmp_file_ids")
         cursor.execute("CREATE TEMPORARY TABLE tmp_file_ids(INTEGER)")
         cursor.executemany("INSERT INTO tmp_file_ids VALUES (?)", ((i, ) for i in fileids))
         cursor.execute("""SELECT file_tags.file_id AS id, group_concat(tags.name) AS tags

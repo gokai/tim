@@ -160,18 +160,17 @@ class Gui2Db(object):
     def _remove_tags(self, ids, tags):
         tagview = self.main.get_sidebar_view('main_tags')
         self.update_tagview(tagview, tags, -len(ids))
-        self.db.remove_tags_from_files(sorted(ids.values()), tags)
+        self.db.remove_tags_from_files(sorted(ids), tags)
 
     def remove_tags_from_files(self, event):
-        view = self.main.get_current_view()
-        names = view.selection()
-        ids = self.db.get_file_ids(names)
-        tags = self.db.get_file_tags(ids.values())
-        tagset = set(tags[0]['tags'].split(','))
-        tagset.intersection_update(*[t['tags'].split(',') for t in tags])
+        names = self.main.get_current_view().selection()
+        ids, tagset = self._get_selection_tags()
+        if (len(tagset) == 0):
+            return
         dialog = ListDialog(self.main.root, tagset, 
                 'Select tags to remove from\n{}'.format(',\n'.join(names)),
                 lambda t: self._remove_tags(ids, t))
+        #self.main.text_query('Remove tags: ', complete_list = tagset)
 
 
     def remove_deleted_files(self):
@@ -182,17 +181,23 @@ class Gui2Db(object):
                     "The following files have been removed:\n{}".format('\n'.join(removed)))
         return
 
-    def show_selection_tags(self):
-        if len(self.main.views) == 0:
-            return
+    def _get_selection_tags(self):
         gallery = self.main.get_current_view()
         selection = gallery.selection()
         if len(selection) == 0:
-            return
-        fids = (self.all_ids[p] for p in selection)
+            return set(), set()
+        fids = set((self.all_ids[p] for p in selection))
         tags = self.db.get_file_tags(fids)
         tagset = set(tags[0]['tags'].split(','))
         tagset.intersection_update(*[t['tags'].split(',') for t in tags])
+        return fids, tagset
+
+    def show_selection_tags(self):
+        if len(self.main.views) == 0:
+            return
+        tagset = self._get_selection_tags()[1]
+        if (len(tagset) == 0):
+            return
         view = TagView(self.main.sidebar, sorted(tagset), 'Selection tags')
         self.main.add_sidebar(view, 'selection_tags')
 
