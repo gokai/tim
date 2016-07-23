@@ -79,7 +79,9 @@ class Main(object):
             self.sidebar_views['main'].widget.focus_set()
 
     def focus_main_view(self):
-        self.get_current_view().widget.focus_set()
+        view = self.get_current_view()
+        if (view is not None):
+            self.get_current_view().widget.focus_set()
 
     def new_view(self, view):
         self.views.append(view)
@@ -137,7 +139,7 @@ class Main(object):
         if self.tabs.index('end') > 0:
             return self.views[self.tabs.index('current')]
         else:
-            return self.sidebar_views['main']
+            return None
 
     def view_changed(self):
         self._root.event_generate('<<MainViewChanged>>')

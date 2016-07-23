@@ -211,8 +211,10 @@ class Gui2Db(object):
         self._toggle('selection_tags', lambda : self.show_selection_tags())
 
     def update_selection_tags(self, event):
-        if (self.main.get_sidebar_view('selection_tags') is None
-           or self.main.get_current_view() is None):
+        if self.main.get_sidebar_view('selection_tags') is None:
+            return
+        elif self.main.get_current_view() is None:
+            self.main.remove_sidebar_view('selection_tags')
             return
         gallery = self.main.get_current_view()
         selection = gallery.selection()
