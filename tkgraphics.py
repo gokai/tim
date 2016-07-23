@@ -109,7 +109,7 @@ class SlideShow(object):
     
 class Gallery(object):
     LIMIT = 1000
-    DELAY = 100
+    DELAY = 10
 
     def __init__(self, root, paths, thumb_size, activate_func):
         """thumb_size = (w, h)"""
@@ -216,6 +216,10 @@ class Gallery(object):
     def reload(self):
         w = self._canvas.winfo_width()
         if w != self.prev_w:
+            if self._load_tid is not None:
+                self.widget.after_cancel(self._load_tid)
+            if self._repos_tid is not None:
+                self.widget.after_cancel(self._repos_tid)
             self.prev_w = w
             self.max_columns = self.calculate_max_columns()
             self.repos = 0
@@ -250,17 +254,27 @@ class Gallery(object):
             if self.cursor.prev_item != -1:
                 index = self.cursor_to_index(self.cursor.row, self.cursor.column)
                 self.view_item(self.photos[index])
+            if self._load_tid is not None:
+                self._load_tid = self.widget.after(self.DELAY, self.load_next)
+            self._repos_tid = None
 
     def calculate_max_columns(self):
+        self._canvas.unbind('<Configure>')
+        self._canvas.update_idletasks()
         w = self._canvas.winfo_width()
+        self._canvas.bind('<Configure>', lambda e: self.reload())
         return floor(w/(self.thumb_w + 8))
 
     def calculate_pos(self, column, row):
+        # center of column = column left edge + 1/2 width + empty space + extra offset
         x = column * self.thumb_w + self.thumb_w/2 + 8*column + 5
         y = row * self.thumb_h + self.thumb_h/2 + 8*row + 5
         return x,y
 
     def load_next(self):
+        if (self.max_columns < 1):
+            self.calculate_max_columns()
+
         try:
             img = Image.open(self.paths[self.load_pos])
             resize(img, self.thumb_h, self.thumb_w)
@@ -276,22 +290,24 @@ class Gallery(object):
             self.loaded += 1
         except OSError:
             logger.info('Could not open %s', self.paths[self.load_pos])
-            self.load_pos += 1
         except Image.DecompressionBombWarning:
-            self.load_pos += 1
+            logger.warning('Decompression bomb exception: %s', self.paths[self.load_pos])
 
         if self.column >= self.max_columns:
             self.row += 1
             self.column = 0
         if self.load_pos < len(self.paths) - 1 and self.loaded <= self.LIMIT:
             self.load_pos += 1
+            if self._load_tid is not None:
+                self.widget.after_cancel(self._load_tid)
             self._load_tid = self.widget.after(self.DELAY, self.load_next)
-        elif self.loaded >= self.LIMIT:
+        elif self.loaded > self.LIMIT:
             self.loaded = 0
             x, y = self.calculate_pos(self.column, self.row)
             button = Button(self._canvas, text='Load More', command=self.continue_loading)
             cid = self._canvas.create_window(x, y, window=button)
             self._canvas.addtag_withtag('loadbutton', cid)
+            self._load_tid = None
         else:
             self._load_tid = None
         self._canvas['scrollregion'] = self._canvas.bbox('all')
@@ -300,7 +316,7 @@ class Gallery(object):
         if self.load_pos < len(self.paths) - 1:
             self.load_pos += 1
             self._canvas.delete('loadbutton')
-            self._canvas.after(self.DELAY, self.load_next)
+            self._load_tid = self.widget.after(self.DELAY, self.load_next)
 
     def cursor_to_index(self, row, column):
         if row == -1:
@@ -341,7 +357,11 @@ class Gallery(object):
         self.move_cursor(column, row, e.state)
 
     def move_cursor(self, column, row, state = 0x0):
-        prev_item = self.photos[self.cursor.prev_item]
+        if column < 0:
+            column = 0
+        if row < 0:
+            row = 0
+
         new_index = self.cursor_to_index(row, column)
         if new_index >= len(self.photos):
             row, column = self.max_cursor_position()
