@@ -167,10 +167,8 @@ class Gui2Db(object):
         ids, tagset = self._get_selection_tags()
         if (len(tagset) == 0):
             return
-        dialog = ListDialog(self.main.root, tagset, 
-                'Select tags to remove from\n{}'.format(',\n'.join(names)),
-                lambda t: self._remove_tags(ids, t))
-        #self.main.text_query('Remove tags: ', complete_list = tagset)
+        self.main.text_query('Remove tags: ', complete_list = tagset,
+            accept_func = lambda s, ot: self._remove_tags(ids, s.split(',')))
 
 
     def remove_deleted_files(self):
