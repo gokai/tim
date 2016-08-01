@@ -272,6 +272,8 @@ class Gallery(object):
         return x,y
 
     def load_next(self):
+        if (len(self.paths) == 0):
+            return
         if (self.max_columns < 1):
             self.calculate_max_columns()
 
