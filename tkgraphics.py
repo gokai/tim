@@ -153,7 +153,7 @@ class Gallery(object):
         self._scroll.grid(row=0, column=1, sticky=(N,S))
         self.widget.columnconfigure(1, weight=0)
         self.max_columns = self.calculate_max_columns()
-        self.widget.after(self.DELAY, self.load_next)
+        self.widget.after(self.DELAY * 10, self.load_next)
 
     def activate(self, e):
         photo_index = self.cursor_to_index(self.cursor.row, self.cursor.column)
@@ -225,7 +225,7 @@ class Gallery(object):
             self.repos = 0
             self.repos_col = 0
             self.repos_row = 0
-            self._repos_tid = self.widget.after(self.DELAY, self.reposition_next)
+            self._repos_tid = self.widget.after(self.DELAY * 2, self.reposition_next)
 
     def reposition_next(self):
         if len(self.photos) > 0:
