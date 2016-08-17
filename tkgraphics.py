@@ -22,6 +22,7 @@ import keybindings as kb
 MouseWheelEvent = 38
 
 Cursor = namedtuple('Cursor', ['column', 'row', 'item_id', 'cid'])
+ImgSize = namedtuple('ImgSize', ['width', 'height'])
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
@@ -128,6 +129,10 @@ class Gallery(object):
         self._select_mode = False
         self._load_tid = None
         self._repos_tid = None
+        self._img_sizes = list()
+        self._text = StringVar()
+        label = Label(self._canvas, background = 'white', textvariable = self._text)
+        self._text_cid = self._canvas.create_window(0,0, window = label, anchor=NW)
 
     def bind(self, *args, **kwargs):
         self._canvas.bind(*args, **kwargs)
@@ -258,6 +263,10 @@ class Gallery(object):
                 self._load_tid = self.widget.after(self.DELAY, self.load_next)
             self._repos_tid = None
 
+    def get_info_string(self, cursor):
+        size = self._img_sizes[cursor.item_id]
+        return "{} x {}".format(size.width, size.height)
+
     def calculate_max_columns(self):
         self._canvas.unbind('<Configure>')
         self._canvas.update_idletasks()
@@ -279,6 +288,7 @@ class Gallery(object):
 
         try:
             img = Image.open(self.paths[self.load_pos])
+            self._img_sizes.append(ImgSize(img.width, img.height))
             resize(img, self.thumb_h, self.thumb_w)
             photo = PhotoImage(img)
             col, row = self.column, self.row
@@ -438,6 +448,8 @@ class Gallery(object):
         bottom = bbox[3]
         if bottom > max_visible_y or top < min_visible_y:
             self._canvas.yview_moveto((top - self.thumb_h) / max_y)
+        self._text.set(self.get_info_string(self.cursor))
+        self._canvas.coords(self._text_cid, bbox[0], bbox[1])
 
     def close(self):
         if self._load_tid is not None:
