@@ -21,7 +21,7 @@ import keybindings as kb
 
 MouseWheelEvent = 38
 
-Cursor = namedtuple('Cursor', ['column', 'row', 'prev_item', 'cid'])
+Cursor = namedtuple('Cursor', ['column', 'row', 'item_id', 'cid'])
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
@@ -236,7 +236,7 @@ class Gallery(object):
             if rectangle is not None:
                 bbox = self._canvas.bbox(photo.cid)
                 self._canvas.coords(rectangle, bbox[0], bbox[1], bbox[2], bbox[3])
-            if self.repos == self.cursor.prev_item:
+            if self.repos == self.cursor.item_id:
                 self.cursor = Cursor(self.repos_col, self.repos_row, self.repos, self.cursor.cid)
             col, row = self.repos_col, self.repos_row
             self.repos_col += 1
@@ -251,7 +251,7 @@ class Gallery(object):
             new_x, new_y = self.calculate_pos(self.repos_col, self.repos_row)
             self._canvas.coords('loadbutton', new_x, new_y)
             self._canvas['scrollregion'] = self._canvas.bbox('all')
-            if self.cursor.prev_item != -1:
+            if self.cursor.item_id != -1:
                 index = self.cursor_to_index(self.cursor.row, self.cursor.column)
                 self.view_item(self.photos[index])
             if self._load_tid is not None:
@@ -335,12 +335,12 @@ class Gallery(object):
         column = self.cursor.column
         if row < 0:
             row = 0
-        self.move_cursor(column, row, e.state)
+        self.move_cursor(column, row)
 
     def cursor_down(self, e):
         row = self.cursor.row + 1
         column = self.cursor.column
-        self.move_cursor(column, row, e.state)
+        self.move_cursor(column, row)
 
     def cursor_right(self, e):
         row = self.cursor.row
@@ -348,7 +348,7 @@ class Gallery(object):
         if column >= self.max_columns:
             column = 0
             row += 1
-        self.move_cursor(column, row, e.state)
+        self.move_cursor(column, row)
 
     def cursor_left(self, e):
         row = self.cursor.row
@@ -356,9 +356,9 @@ class Gallery(object):
         if column < 0:
             column = self.max_columns - 1
             row -= 1
-        self.move_cursor(column, row, e.state)
+        self.move_cursor(column, row)
 
-    def move_cursor(self, column, row, state = 0x0):
+    def move_cursor(self, column, row):
         if column < 0:
             column = 0
         if row < 0:
@@ -376,7 +376,7 @@ class Gallery(object):
         logger.debug('move_cursor, item.index=%d', item.index)
         self.set_cursor(item, column, row)
 
-    def set_cursor(self, item, column, row, index=None):
+    def set_cursor(self, item, column, row):
         cid = self.cursor.cid
         bbox = self._canvas.bbox(item.cid)
         if cid == '':
@@ -384,7 +384,7 @@ class Gallery(object):
             cid = self._canvas.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3],
                     outline=color, fill=color, stipple='gray12', width=3)
         else:
-            self._canvas.coords(cid,bbox[0], bbox[1], bbox[2], bbox[3])
+            self._canvas.coords(cid, bbox[0], bbox[1], bbox[2], bbox[3])
         if self._select_mode:
             self.selection_add(item)
         rect = getattr(item, 'rectangle_id', None)
@@ -392,7 +392,7 @@ class Gallery(object):
             self._canvas.tag_raise(cid, rect)
         else:
             self._canvas.tag_raise(cid, item.cid)
-        self.cursor = Cursor(column, row, index or row*self.max_columns + column, cid)
+        self.cursor = Cursor(column, row, item.index, cid)
         logger.debug('cursor: %s', str(self.cursor))
         self._canvas.event_generate('<<GallerySelectionChanged>>')
         self.view_item(item)
