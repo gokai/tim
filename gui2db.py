@@ -13,9 +13,10 @@ from tagview import TagView, NameView
 from editview import CollectionEditView
 
 class Gui2Db(object):
-    def __init__(self, db, main, gallery_func):
+    def __init__(self, db, main, theme, gallery_func):
         self.db = db
         self.main = main
+        self.theme = theme
         self.all_ids = {}
         self.gallery_func = gallery_func
 

@@ -9,7 +9,8 @@ import keybindings as kb
 class NameView(object):
     """Shows a treeview of unique names."""
 
-    def __init__(self, master, names, title="", counts=None):
+    def __init__(self, master, names, theme, title="", counts=None):
+        self.theme = theme
         self.widget = Frame(master)
         if title != "":
             self.title = Label(self.widget, text=title) 
@@ -156,8 +157,8 @@ class NameView(object):
 
 class TagView(NameView):
 
-    def __init__(self, master, names, title="", counts=None):
-        super(TagView, self).__init__(master, names, title, counts)
+    def __init__(self, master, names, theme, title="", counts=None):
+        super(TagView, self).__init__(master, names, theme, title, counts)
 
     def append_tags(self, tags):
         tags = tuple(set(tags))

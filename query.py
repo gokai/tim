@@ -7,14 +7,14 @@ import keybindings as kb
 
 class ListStringQuery:
 
-    def __init__(self, master, query_label, original_text=None, complete_list=None):
+    def __init__(self, master, query_label, theme, original_text=None, complete_list=None):
         self.widget = Frame(master)
         label = Label(self.widget, text=query_label)
         label.grid(column=0, row=0, sticky=(N, S))
 
         self.text_var = StringVar()
         if complete_list is not None:
-            self.nameview = NameView(self.widget, sorted(complete_list))
+            self.nameview = NameView(self.widget, sorted(complete_list), theme)
             self.nameview.widget.grid(row=1, column=0, columnspan=2, sticky=(N,S,W,E))
             ok_command = self.widget.register(self.is_ok)
             self.entry = Entry(self.widget, textvariable=self.text_var,

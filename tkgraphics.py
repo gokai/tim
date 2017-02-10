@@ -26,9 +26,9 @@ ImgSize = namedtuple('ImgSize', ['width', 'height'])
 def resize(image, target_height, target_width):
     image.thumbnail((target_width, target_height), Image.BILINEAR)
 
-def gallery_creator(new_view):
+def gallery_creator(new_view, theme):
     return lambda root, paths: Gallery(root, paths, (250, 250),
-            lambda s, a: new_view(SlideShow(root, s, a)))
+            lambda s, a: new_view(SlideShow(root, s, a)), theme)
 
 # Change DecompressionBombWarning in to an error
 # allows better handling.
@@ -112,15 +112,16 @@ class Gallery(object):
     LIMIT = 1000
     DELAY = 10
 
-    def __init__(self, root, paths, thumb_size, activate_func):
+    def __init__(self, root, paths, thumb_size, activate_func, theme):
         """thumb_size = (w, h)"""
         self.paths = paths
         self.thumb_w = thumb_size[0]
         self.thumb_h = thumb_size[1]
         self.photos = list()
         self._selection = set()
-        self.widget = Frame(root, takefocus=1)
-        self.make_view()
+        self.widget = Frame(root, takefocus = 0)
+        self.theme = theme
+        self.make_view(root)
         kb.bind('gallery', (self, ), self.bind)
         self._canvas.bind('<Configure>', lambda e: self.reload())
         self.activate_func = activate_func
@@ -138,12 +139,13 @@ class Gallery(object):
         self._canvas.bind(*args, **kwargs)
         self.widget.bind(*args, **kwargs)
 
-    def make_view(self):
+    def make_view(self, root):
         self.style = Style()
         self.style.configure('Gallery.TLabel', padding=3)
-        self.style.configure('Cursor.Gallery.TLabel', background='red')
-        self.style.configure('Selected.Gallery.TLabel', background='blue')
-        self._canvas = Canvas(self.widget)
+        self.style.configure('Cursor.Gallery.TLabel', background=self.theme.get('hlcolor'))
+        self.style.configure('Selected.Gallery.TLabel', background=self.theme.get('focusfg'))
+        self._canvas = Canvas(self.widget, background = self.theme.get('bg'),
+                selectborderwidth = 0, borderwidth = 0)
         self._canvas.grid(row=0, column=0, sticky=(N,W,S,E))
         self.widget.rowconfigure(0, weight=1)
         self.widget.columnconfigure(0,weight=1)
@@ -157,6 +159,7 @@ class Gallery(object):
         self._canvas['yscrollcommand'] = self._scroll.set
         self._scroll.grid(row=0, column=1, sticky=(N,S))
         self.widget.columnconfigure(1, weight=0)
+        root.columnconfigure(1, weight=0)
         self.max_columns = self.calculate_max_columns()
         self.widget.after(self.DELAY * 10, self.load_next)
 

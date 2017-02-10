@@ -51,6 +51,9 @@ class Main(object):
         self.paned_win.add(self.tabs, weight=5)
         self.root = self.tabs
 
+    def set_theme(self, theme):
+        self.theme = theme
+
     def add_menubutton(self, label, action):
         button = Button(self.menubar, text=label, command=action)
         button.grid(row=0, column=self._menucolumn)
@@ -128,7 +131,7 @@ class Main(object):
     def text_query(self, query_label, original_text=None, accept_func=None, complete_list=None):
         if self._query is not None:
             return
-        self._query = ListStringQuery(self.sidebar, query_label, original_text, complete_list)
+        self._query = ListStringQuery(self.sidebar, query_label, self.theme, original_text, complete_list)
         self.root.bind_all('<<ListStringQueryAccept>>', self.accept_query)
         self.root.bind_all('<<ListStringQueryCancel>>', lambda e: self.close_query())
         self.add_sidebar(self._query, '__query__')
